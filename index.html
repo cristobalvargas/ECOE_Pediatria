@@ -41,6 +41,7 @@ function addCase(o) {
     especialidad: o.esp,
     escenario: o.escenario,
     tipoPauta: o.tipo,
+    pasos: o.pasos,
     instruccionPuerta: { vineta: o.vineta, signosVitales: o.sv || {}, tareas: o.tareas },
     infoDesbloqueable: { anamnesis: o.an || '', examenFisico: o.ef || '', complementarios: o.cx || '' },
     pautaCotejo: o.items.map((it, i) => ({ idItem: o.id + '-' + (i + 1), categoria: CAT[it[0]] || it[0], descripcion: it[1], peso: it[2], critico: !!it[3] })),
@@ -1177,6 +1178,108 @@ addCase({
   notas: 'El apunte solo decía "manejo de soporte", sin contenido. Este checklist se construyó desde conocimiento general y no desde el documento. La notificación del SHU depende de la normativa vigente, que no verifiqué.'
 });
 
+// ---------- Reparto de ítems por pregunta (modo paso a paso) ----------
+// pasos: cantidad de ítems de la pauta que corresponden a cada tarea, en orden.
+// Los ítems que sobran al final van a un paso de "Evaluación global".
+const PASOS = {
+  'neo-01': { pasos: [1, 6, 1] },
+  'neo-02': { pasos: [5, 4, 5] },
+  'neo-03': { pasos: [1, 8, 4] },
+  'neo-04': { pasos: [1, 5, 1] },
+  'neo-05': { pasos: [5, 4, 6] },
+  'neo-06': { pasos: [1, 1, 5, 1] },
+  'neo-07': { pasos: [5, 5, 2] },
+  'neo-08': { pasos: [5, 4, 6] },
+  'neo-09': { pasos: [4, 4, 5] },
+  'neo-10': { pasos: [1, 6, 1, 1, 3] },
+  'ped-01': {
+    an: 'El hermano de 13 años no ha tenido varicela ni está vacunado. Por ahora no tiene lesiones.',
+    pasos: [[], [1], [2], [3], [4], [5], [7], [8], [9], [10], [11], [12], [6], [13, 14], [15], [16]],
+    tareas: [
+      'Salude y preséntese.',
+      'Madre: "¿Qué tiene mi hija, doctor(a)?"',
+      'Madre: "¿Esta peste es la misma que la alfombrilla?"',
+      'Madre: "¿Por qué le pasó esto, doctor(a)?"',
+      'Madre: "¿Hace cuánto se contagió?"',
+      'Madre: "¿Cuánto le va a durar?"',
+      'Madre: "¿Qué remedio le doy para la picazón?"',
+      'Madre: "¿Le sigo poniendo talco mentolado? Me han dicho que es tan bueno."',
+      'Madre: "¿Cuándo la puedo bañar, doctor(a)?"',
+      'Madre: "¿Qué le doy de comer?"',
+      'Madre: "¿Qué le doy para la fiebre, doctor(a)?"',
+      'Madre: "¿La puedo mandar al jardín infantil?"',
+      'Madre: "¿Y cuánto tiempo va a estar contagiando?"',
+      'Madre: "¿Qué le va a pasar a mi hijo de 13 años?"',
+      'Madre: "¿Cuándo tengo que volver a consultar?"',
+      'Cierre de la consulta.'
+    ],
+    respuestas: [
+      'Buenos días, soy el doctor o doctora (nombre), voy a atender a su hija.',
+      'Su hija tiene varicela. Es una enfermedad viral, con manchas y ampollitas en la piel, muy contagiosa y autolimitada. No necesita antibióticos.',
+      'No. La varicela es la "peste cristal". La alfombrilla es el sarampión, que es otra enfermedad.',
+      'Es una enfermedad contagiosa, así que tiene que haber estado en contacto con alguien enfermo.',
+      'Se contagió hace 10 a 21 días, que es el periodo de incubación.',
+      'Habitualmente dura de 7 a 10 días.',
+      'Un antihistamínico oral, como hidroxicina 2 mg/kg/día dividida cada 6 a 8 horas, o clorfenamina.',
+      'No. No le ponga talco, cremas ni jabones sobre las lesiones. Solo agua, sin refregar ni romper las ampollitas, para evitar que se infecten.',
+      'Puede bañarla todos los días, solo con agua, sin refregar. Córtele las uñas y manténgalas limpias para que no se rasque.',
+      'Su alimentación habitual, según tolere, y abundantes líquidos.',
+      'Paracetamol 15 mg/kg por dosis, máximo cada 6 horas. No le dé ibuprofeno ni aspirina.',
+      'No puede ir al jardín hasta que todas las lesiones estén en costra.',
+      'Contagia desde 1 a 2 días antes de que aparezcan las manchas hasta que todas las lesiones estén en costra. Mientras tanto debe evitar el contacto con embarazadas, recién nacidos y personas con defensas bajas.',
+      'Primero pregunto si ya tuvo varicela o está vacunado. Si no: debe consultar pronto. Si todavía no tiene lesiones, puede vacunarse dentro de los 3 a 5 días del contacto. Si le aparecen lesiones, por ser mayor de 12 años tiene indicación de aciclovir oral desde el inicio.',
+      'Consulte antes si: las lesiones se ponen rojas, calientes o con pus, la fiebre dura más de 3 a 4 días o vuelve, tiene tos o dificultad para respirar, está muy somnolienta o confusa, le cuesta caminar o vomita mucho.',
+      '¿Le quedó alguna duda? ¿Me podría repetir lo que va a hacer en casa?'
+    ]
+  },
+  'ped-02': { pasos: [3, 4, 5] },
+  'ped-03': { pasos: [1, 2, 2, 2, 2], cx: '', tareas: ['Antes de ver las imágenes: ¿qué pregunta en la historia de un niño con exantema?', 'Imagen 1: escolar febril con lesiones purpúricas y equimóticas confluentes en extremidades inferiores que no blanquean a la presión. Diagnóstico, destino, notificación e interconsulta.', 'Imagen 2: pápulas eritematosas y surcos lineales en espacios interdigitales y muñecas, con lesiones de rascado. Diagnóstico, destino, notificación e interconsulta.', 'Imagen 3: eritema rojo brillante en la zona del pañal con compromiso de pliegues y pápulas satélites. Diagnóstico, destino, notificación e interconsulta.', 'Imagen 4: lesiones erosivas con costras amarillo miel alrededor de la boca. Diagnóstico, destino, notificación e interconsulta.'] },
+  'ped-04': { pasos: [2, 4, 4] },
+  'ped-05': { pasos: [2, 2, 1, 1, 2, 2], tareas: ['1. Mirarse las manos: 6 meses. ¿V o F? Si es F, corrija la edad.', '2. Tomarse los pies: 12 meses. ¿V o F? Si es F, corrija la edad.', '3. Sentarse sin apoyo: 8 meses. ¿V o F?', '4. Apuntar con el índice: 11 meses. ¿V o F?', '5. Chutear la pelota: 3 años. ¿V o F? Si es F, corrija la edad.', '6. Comer solo: 18 meses. ¿V o F? Si es F, corrija la edad.'] },
+  'ped-06': { pasos: [8, 2, 2] },
+  'ped-07': { pasos: [4, 2, 9] },
+  'ped-08': { pasos: [2, 2, 2, 2], cx: '', tareas: ['Imagen I: radiografía de lactante con campos pulmonares bien aireados y simétricos, silueta cardiaca y mediastino de tamaño normal, ángulos costofrénicos libres. ¿Tipo de examen y diagnóstico?', 'Imagen II: núcleos de osificación femorales presentes y simétricos, línea de Shenton conservada, metáfisis bajo la línea de Hilgenreiner y medial a la de Perkins. ¿Tipo de examen y diagnóstico?', 'Imagen III: contraste instilado en la vejiga por sonda durante la micción, que asciende por ambos uréteres hasta pelvis y cálices dilatados. ¿Tipo de examen y diagnóstico?', 'Imagen IV: radiografía de pie con asas de intestino delgado dilatadas, múltiples niveles hidroaéreos y escaso aire distal. ¿Tipo de examen y diagnóstico?'] },
+  'ped-09': { pasos: [1, 3, 3] },
+  'ped-10': { pasos: [1, 11] },
+  'ped-11': { pasos: [3, 8, 1], tareas: ['Inicie la consulta: con quién habla primero y cómo encuadra la entrevista.', 'Realice la anamnesis psicosocial a la adolescente.', 'Cierre la entrevista.'] },
+  'ped-12': { pasos: [9, 2] },
+  'ped-13': { pasos: [3, 2, 5] },
+  'ped-14': { pasos: [2, 3, 5] },
+  'ped-15': { pasos: [1, 1, 1, 1, 1, 3], cx: '', tareas: ['Foto A: botón mamario subareolar con leve elevación de mama y areola. ¿Tanner?', 'Foto B: areola y pezón forman un segundo montículo sobre el contorno de la mama. ¿Tanner?', 'Foto C: vello púbico escaso, largo, liso y poco pigmentado en labios mayores. ¿Tanner?', 'Foto D: vello rizado y pigmentado que cubre todo el pubis, sin extenderse a los muslos. ¿Tanner?', 'Foto E: genitales masculinos con testículos de 12 ml, pene aumentado en longitud y vello rizado sobre el pubis. ¿Tanner?', 'Defina el inicio puberal masculino, la pubertad precoz y el retraso puberal.'] },
+  'ped-16': { pasos: [1, 2, 2, 2, 2, 1], cx: '', tareas: ['Imagen 1: membrana gris perlada, translúcida, con triángulo luminoso y mango del martillo visibles. ¿Diagnóstico y manejo?', 'Imagen 2: membrana abombada, eritematosa y opaca, sin triángulo luminoso, en niño febril con otalgia. ¿Diagnóstico y manejo?', 'Imagen 3: membrana color ámbar con burbujas y nivel líquido, sin abombamiento ni signos inflamatorios, en niño sin dolor. ¿Diagnóstico y manejo?', 'Imagen 4: perforación timpánica central con otorrea purulenta de mal olor e hipoacusia de larga data. ¿Diagnóstico y manejo?', 'Imagen 5: conducto auditivo con detritus blanquecinos y puntos negros, aspecto algodonoso con hifas, en paciente con prurito. ¿Diagnóstico y manejo?', '¿Cuándo hospitaliza a un niño con otitis?'] },
+  'ped-17': { pasos: [1, 10] },
+  'ped-18': { pasos: [3, 4, 4, 2], tareas: ['Indicaciones de régimen, monitorización y volumen.', 'Antibiótico, otros fármacos y oxígeno.', 'Exámenes y estudio.', 'Otras indicaciones.'] },
+  'ped-19': { pasos: [2, 7, 2] },
+  'ped-20': { pasos: [2, 4, 2], tareas: ['Encabezado de la receta: datos del paciente y diagnóstico.', 'Antibiótico: dosis, presentación y volumen, duración y cantidad a comprar.', 'Analgésico y cierre de la receta.'] },
+  'ped-21': { pasos: [2, 5, 3] },
+  'ped-22': { pasos: [1, 7, 3] },
+  'ped-23': { pasos: [1, 2, 8] },
+  'ped-24': { pasos: [2, 5, 2], tareas: ['Encabezado de la receta: datos del paciente y diagnóstico.', 'Fármacos: dosis, presentación y volumen, duración, cantidad y analgesia.', 'Indicaciones de control y cierre de la receta.'] },
+  'ped-25': { pasos: [4, 3, 5, 1], tareas: ['Reanimación inicial y destino.', 'Antibióticos y corticoide.', 'Exámenes, aislamiento y cuidados.', 'Manejo de contactos.'] },
+  'ped-26': { pasos: [2, 5, 4] },
+  'ped-27': { pasos: [3, 5, 4] },
+  'ped-28': { pasos: [1, 1, 1, 1, 1, 1, 1, 1] },
+  'ped-29': { pasos: [6, 3, 3] },
+  'ped-30': { pasos: [3, 7, 3] },
+  'ped-31': { pasos: [4, 2, 7] },
+  'ped-32': { pasos: [3, 5, 3], tareas: ['Evalúe a la paciente y obtenga la información relevante.', 'Indique el manejo inicial y los exámenes.', 'Explique al padre el plan.'] },
+  'ped-33': { pasos: [3, 4, 3] },
+  'ped-34': { pasos: [3, 1, 10] },
+  'ped-35': { pasos: [6, 2, 3] },
+  'ped-36': { pasos: [7, 2, 2, 2], tareas: ['Maneje la crisis.', 'Ya cedió la crisis: busque la causa y clasifíquela.', 'Eduque a la madre.', 'Defina el estudio.'] },
+  'ped-37': { pasos: [3, 3, 7] },
+  'ped-38': { pasos: [2, 8, 2], tareas: ['Plantee el diagnóstico.', 'Indique el manejo.', 'Indique el estudio etiológico y el seguimiento.'] }
+};
+CASES_DATA.forEach(c => {
+  const m = PASOS[c.id];
+  if (!m) return;
+  if (m.tareas) c.instruccionPuerta.tareas = m.tareas;
+  if (m.cx !== undefined) c.infoDesbloqueable.complementarios = m.cx;
+  if (m.an !== undefined) c.infoDesbloqueable.anamnesis = m.an;
+  if (m.respuestas) c.respuestas = m.respuestas;
+  c.pasos = m.pasos;
+});
+
 
 </script>
 
@@ -1284,14 +1387,43 @@ function render() {
   icons();
 }
 
+function getSteps(c) {
+  const items = c.pautaCotejo, t = (c.instruccionPuerta && c.instruccionPuerta.tareas) || [], p = c.pasos, r = c.respuestas || [];
+  if (Array.isArray(p) && p.length === t.length) {
+    // Cada paso puede ser un número (cantidad de ítems consecutivos) o un arreglo de números de ítem (desde 1)
+    let k = 0, ok = true;
+    const used = new Set();
+    const steps = t.map((q, i) => {
+      let its;
+      if (Array.isArray(p[i])) its = p[i].map(n => items[n - 1]);
+      else if (Number.isInteger(p[i]) && p[i] >= 0) { its = items.slice(k, k + p[i]); k += p[i]; }
+      else ok = false;
+      if (!its || its.some(x => !x)) { ok = false; its = []; }
+      its.forEach(x => used.add(x.idItem));
+      return { q, items: its, resp: r[i] || '' };
+    });
+    if (ok) {
+      const rest = items.filter(x => !used.has(x.idItem));
+      if (rest.length) steps.push({ q: 'Evaluación global: comunicación y paciente simulado', items: rest, global: true, resp: '' });
+      return steps;
+    }
+  }
+  return [{ q: t.length ? t.join('\n') : 'Resuelva la estación', items, all: true, resp: '' }];
+}
 function startStation(id, blind) {
   initAudio();
   stopTimer();
   state.current = id;
   state.blind = !!blind;
   if (blind) state.blindNumber = Math.floor(Math.random() * 90) + 10;
+  state.steps = getSteps(getCase(id));
+  state.step = 0;
+  state.phase = state.steps[0].global ? 'check' : 'answer';
+  state.used = 0;
+  state.segStart = state.phase === 'answer' ? Date.now() : null;
+  state.timeUp = false;
+  state.lateFrom = null;
   state.remaining = STATION_SECONDS;
-  state.startTs = Date.now();
   state.elapsed = 0;
   state.beeped = false;
   state.checks = {};
@@ -1304,12 +1436,22 @@ function startStation(id, blind) {
   state.timerId = setInterval(tick, 250);
 }
 function stopTimer() { if (state.timerId) { clearInterval(state.timerId); state.timerId = null; } }
+function usedNow() { return state.used + (state.segStart ? (Date.now() - state.segStart) / 1000 : 0); }
+function pauseClock() { if (state.segStart) { state.used += (Date.now() - state.segStart) / 1000; state.segStart = null; } }
+function resumeClock() { if (!state.timeUp && !state.segStart) state.segStart = Date.now(); }
 function tick() {
-  const el = (Date.now() - state.startTs) / 1000;
-  state.remaining = Math.max(0, STATION_SECONDS - el);
-  state.elapsed = Math.min(STATION_SECONDS, el);
+  const u = usedNow();
+  state.remaining = Math.max(0, STATION_SECONDS - u);
+  state.elapsed = Math.min(STATION_SECONDS, u);
   if (!state.beeped && state.remaining <= 60) { state.beeped = true; beep(880, 0.25, 2); }
-  if (state.remaining <= 0) { beep(440, 0.6, 1); goToPauta(); return; }
+  if (state.remaining <= 0 && !state.timeUp) {
+    state.timeUp = true;
+    pauseClock();
+    beep(440, 0.6, 1);
+    state.lateFrom = state.phase === 'answer' ? state.step : state.step + 1;
+    if (state.phase === 'answer') showStepPauta(); else render();
+    return;
+  }
   updateTimerUI();
 }
 function updateTimerUI() {
@@ -1318,21 +1460,46 @@ function updateTimerUI() {
   if (!t || !bar) return;
   t.textContent = mmss(state.remaining);
   let cls = 'bg-teal-600 dark:bg-teal-700';
-  if (state.remaining <= 60) cls = 'bg-amber-500 dark:bg-amber-600';
+  if (state.timeUp) cls = 'bg-rose-600 dark:bg-rose-700';
+  else if (state.remaining <= 60) cls = 'bg-amber-500 dark:bg-amber-600';
   bar.className = 'sticky top-0 z-30 text-white shadow-md transition-colors ' + cls;
   const pb = document.getElementById('timebar');
   if (pb) pb.style.width = (100 * state.remaining / STATION_SECONDS) + '%';
+  const cs = document.getElementById('clockState');
+  if (cs) cs.textContent = state.timeUp ? 'Tiempo agotado' : state.segStart ? 'Corriendo' : 'En pausa mientras evalúas';
 }
-function goToPauta() {
+function saveNotes() { const ta = document.getElementById('notes'); if (ta) state.notes = ta.value; }
+function showStepPauta() {
   if (state.view !== 'station') return;
-  const ta = document.getElementById('notes');
-  if (ta) state.notes = ta.value;
+  saveNotes();
+  pauseClock();
+  state.phase = 'check';
+  render();
+  const el = document.getElementById('stepCheck');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function nextStep() {
+  if (state.view !== 'station') return;
+  saveNotes();
+  if (state.step < state.steps.length - 1) {
+    state.step++;
+    if (state.steps[state.step].global) state.phase = 'check';
+    else { state.phase = 'answer'; resumeClock(); }
+    render();
+    window.scrollTo(0, 0);
+  } else finishStation();
+}
+function finishStation() {
+  if (state.view !== 'station') return;
+  saveNotes();
+  pauseClock();
   stopTimer();
-  state.elapsed = Math.min(STATION_SECONDS, (Date.now() - state.startTs) / 1000);
+  state.elapsed = Math.min(STATION_SECONDS, state.used);
   state.view = 'pauta';
   render();
   window.scrollTo(0, 0);
 }
+function goToPauta() { finishStation(); }
 function backToDashboard() {
   stopTimer();
   state.view = 'dashboard';
@@ -1405,7 +1572,7 @@ function renderDashboard() {
 
     ${renderDataTools()}
 
-    <p class="text-xs text-center text-slate-400 pb-6">Atajos: <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">R</kbd> estación al azar · <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Espacio</kbd> o <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Enter</kbd> ir a pauta durante la estación</p>
+    <p class="text-xs text-center text-slate-400 pb-6">Atajos: <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">R</kbd> estación al azar · <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Espacio</kbd> o <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Enter</kbd> ver la pauta de la pregunta y pasar a la siguiente</p>
   </main>`;
 }
 
@@ -1506,6 +1673,20 @@ function renderDataTools() {
 }
 
 // ---------- Estación ----------
+function stepScore(s) {
+  const got = s.items.reduce((a, i) => a + (state.checks[i.idItem] ? Number(i.peso || 0) : 0), 0);
+  const tot = s.items.reduce((a, i) => a + Number(i.peso || 0), 0);
+  return { got: round1(got), tot: round1(tot) };
+}
+function isLate(i) { return state.lateFrom !== null && i >= state.lateFrom; }
+function renderChecklist(items) {
+  return items.map(i => `
+    <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+      <input type="checkbox" class="chk mt-0.5" ${state.checks[i.idItem] ? 'checked' : ''} onchange="toggleCheck('${i.idItem}', this.checked)">
+      <span class="flex-1 text-[0.95rem] leading-snug">${fmt(i.descripcion)} ${i.critico ? '<span class="ml-1 text-xs font-bold text-rose-600 dark:text-rose-400 align-middle">CRÍTICO</span>' : ''}</span>
+      <span class="text-sm font-semibold text-slate-500 tabular-nums">${i.peso}</span>
+    </label>`).join('');
+}
 function renderStation() {
   const c = getCase(state.current);
   const ip = c.instruccionPuerta || {};
@@ -1516,44 +1697,83 @@ function renderStation() {
   const title = state.blind ? `Estación aleatoria #${state.blindNumber}` : esc(c.titulo);
   const sub = state.blind ? 'Especialidad oculta' : esc(c.especialidad);
   const info = c.infoDesbloqueable || {};
+  const steps = state.steps, cur = steps[state.step], last = state.step === steps.length - 1;
+  const nSteps = steps.length;
   const acc = (label, icon, text) => text ? `
     <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <summary class="p-4 flex items-center justify-between font-semibold"><span class="flex items-center gap-2"><i data-lucide="${icon}" class="w-4 h-4 text-teal-600"></i>${label}</span><i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
       <div class="px-4 pb-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">${fmt(text)}</div>
     </details>` : '';
+  const actionBtn = state.phase === 'answer'
+    ? `<button onclick="showStepPauta()" class="ml-2 px-4 py-2 rounded-lg bg-white text-slate-900 font-bold flex items-center gap-1 hover:bg-slate-100"><span class="hidden sm:inline">Ver pauta de esta pregunta</span><span class="sm:hidden">Pauta</span><i data-lucide="clipboard-check" class="w-4 h-4"></i></button>`
+    : `<button onclick="nextStep()" class="ml-2 px-4 py-2 rounded-lg bg-white text-slate-900 font-bold flex items-center gap-1 hover:bg-slate-100"><span class="hidden sm:inline">${last ? 'Ver resumen final' : 'Siguiente pregunta'}</span><span class="sm:hidden">${last ? 'Resumen' : 'Siguiente'}</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>`;
+  const done = steps.slice(0, state.step).map((s, i) => {
+    const sc = stepScore(s);
+    return `<div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-sm">
+      <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0"></i>
+      <div class="flex-1 text-slate-600 dark:text-slate-400"><b>${s.global ? 'Evaluación global' : 'Pregunta ' + (i + 1)}.</b> ${fmt(s.q)}</div>
+      <span class="tabular-nums font-semibold text-slate-500">${sc.got}/${sc.tot}</span>
+    </div>`;
+  }).join('');
+  const sc = stepScore(cur);
+  const label = cur.global ? 'Evaluación global' : cur.all ? 'Tareas de la estación' : `Pregunta ${state.step + 1} de ${steps.filter(s => !s.global).length}`;
+  const checkBlock = state.phase === 'check' ? `
+    <div id="stepCheck" class="mt-4 rounded-2xl border-2 border-teal-500/60 overflow-hidden">
+      <div class="px-4 py-3 bg-teal-50 dark:bg-teal-950/40 flex flex-wrap items-center justify-between gap-2">
+        <span class="font-semibold text-teal-800 dark:text-teal-300 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-4 h-4"></i>Marca lo que dijiste</span>
+        <div class="flex items-center gap-2">
+          <span id="stepScore" class="tabular-nums font-bold">${sc.got} / ${sc.tot}</span>
+          <button onclick="markStep(true)" class="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs">Marcar todo</button>
+          <button onclick="markStep(false)" class="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs">Desmarcar</button>
+        </div>
+      </div>
+      ${cur.resp ? `<div class="px-4 py-3 bg-sky-50 dark:bg-sky-950/40 border-b border-sky-200 dark:border-sky-900 text-sm leading-relaxed"><div class="font-semibold text-sky-800 dark:text-sky-300 mb-1 flex items-center gap-2"><i data-lucide="message-circle-reply" class="w-4 h-4"></i>Respuesta esperada</div><div class="text-sky-900 dark:text-sky-100">${fmt(cur.resp)}</div></div>` : ''}
+      ${cur.items.length ? `<div class="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">${renderChecklist(cur.items)}</div>` : '<div class="px-4 py-3 bg-white dark:bg-slate-900 text-sm text-slate-500">Esta pregunta no tiene puntaje en la pauta, pero debes decirlo.</div>'}
+      <div class="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
+        <button onclick="nextStep()" class="w-full px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center justify-center gap-2">${last ? 'Ver resumen final' : 'Siguiente pregunta'}<i data-lucide="arrow-right" class="w-5 h-5"></i></button>
+      </div>
+    </div>` : `
+    <button onclick="showStepPauta()" class="mt-4 w-full px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center justify-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Ya respondí, ver pauta de esta pregunta</button>`;
   return `
-  <div id="topbar" class="sticky top-0 z-30 text-white shadow-md bg-teal-600 dark:bg-teal-700">
+  <div id="topbar" class="sticky top-0 z-30 text-white shadow-md ${state.timeUp ? 'bg-rose-600 dark:bg-rose-700' : state.remaining <= 60 ? 'bg-amber-500 dark:bg-amber-600' : 'bg-teal-600 dark:bg-teal-700'}">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
       <button onclick="if(confirm('¿Salir de la estación sin evaluar?')) backToDashboard()" class="p-2 rounded-lg hover:bg-white/15" title="Salir"><i data-lucide="x" class="w-5 h-5"></i></button>
       <div class="flex-1 min-w-0">
         <div class="font-bold truncate">${title}</div>
-        <div class="text-xs opacity-90">${sub}</div>
+        <div class="text-xs opacity-90">${sub} · ${state.step + 1}/${nSteps}</div>
       </div>
-      <div class="flex items-center gap-2"><i data-lucide="timer" class="w-5 h-5"></i><span id="timer" class="font-mono text-3xl font-extrabold tabular-nums">${mmss(state.remaining)}</span></div>
-      <button onclick="goToPauta()" class="ml-2 px-4 py-2 rounded-lg bg-white text-slate-900 font-bold flex items-center gap-1 hover:bg-slate-100"><span class="hidden sm:inline">Siguiente / Ir a pauta</span><span class="sm:hidden">Pauta</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+      <div class="text-right">
+        <div class="flex items-center gap-2"><i data-lucide="timer" class="w-5 h-5"></i><span id="timer" class="font-mono text-3xl font-extrabold tabular-nums">${mmss(state.remaining)}</span></div>
+        <div id="clockState" class="text-[11px] opacity-90">${state.timeUp ? 'Tiempo agotado' : state.segStart ? 'Corriendo' : 'En pausa mientras evalúas'}</div>
+      </div>
+      ${actionBtn}
+      <button onclick="if(confirm('¿Finalizar el caso y volver al menú? Este intento no se guardará.')) backToDashboard()" class="px-3 py-2 rounded-lg border-2 border-white/70 text-white font-bold flex items-center gap-1 hover:bg-white/15" title="Finalizar el caso"><i data-lucide="flag-triangle-right" class="w-4 h-4"></i><span class="hidden md:inline">Finalizar caso</span></button>
     </div>
-    <div class="h-1 bg-white/20"><div id="timebar" class="h-1 bg-white transition-all" style="width:100%"></div></div>
+    <div class="h-1 bg-white/20"><div id="timebar" class="h-1 bg-white transition-all" style="width:${100 * state.remaining / STATION_SECONDS}%"></div></div>
   </div>
   <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-5 gap-5">
     <section class="lg:col-span-3 space-y-4">
       <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
         <div class="flex items-center gap-2 text-sm text-teal-700 dark:text-teal-400 font-semibold mb-3"><i data-lucide="door-open" class="w-4 h-4"></i>Puerta de estación · ${esc(c.escenario || '')}</div>
         <p class="text-[1.05rem] leading-relaxed">${fmt(ip.vineta)}</p>
+        ${svKeys.length ? `<div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4">${svKeys.map(k => `<div class="rounded-lg bg-slate-50 dark:bg-slate-800 p-2 text-center"><div class="text-xs text-slate-500">${esc(k)}</div><div class="font-bold">${esc(sv[k])}</div></div>`).join('')}</div>` : ''}
       </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
-        <div class="flex items-center gap-2 font-semibold mb-3"><i data-lucide="activity" class="w-4 h-4 text-rose-500"></i>Signos vitales</div>
-        ${svKeys.length ? `<div class="grid grid-cols-2 sm:grid-cols-5 gap-2">${svKeys.map(k => `<div class="rounded-lg bg-slate-50 dark:bg-slate-800 p-2 text-center"><div class="text-xs text-slate-500">${esc(k)}</div><div class="font-bold">${esc(sv[k])}</div></div>`).join('')}</div>` : '<p class="text-sm text-slate-500">No informados en el caso.</p>'}
+      ${state.timeUp ? `<div class="rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-900 p-3 text-sm text-rose-800 dark:text-rose-300 flex items-center gap-2"><i data-lucide="alarm-clock-off" class="w-4 h-4"></i>Se acabaron los 5 minutos. Las preguntas que quedan se responden fuera de tiempo.</div>` : ''}
+      ${done ? `<div class="space-y-2">${done}</div>` : ''}
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-500 p-5 shadow-sm">
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="text-sm font-bold text-teal-700 dark:text-teal-400 flex items-center gap-2"><i data-lucide="message-square-text" class="w-4 h-4"></i>${label}</span>
+          ${isLate(state.step) ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300">Fuera de tiempo</span>' : ''}
+        </div>
+        <p class="text-lg font-semibold leading-snug">${cur.global ? 'Autoevalúa cómo te comunicaste durante la estación.' : fmt(cur.q)}</p>
+        ${checkBlock}
       </div>
-      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
-        <div class="flex items-center gap-2 font-semibold mb-3"><i data-lucide="list-checks" class="w-4 h-4 text-teal-600"></i>Tareas</div>
-        <ol class="list-decimal pl-5 space-y-1.5">${(ip.tareas || []).map(t => `<li>${fmt(t)}</li>`).join('')}</ol>
-      </div>
+      ${state.step < nSteps - 1 ? `<p class="text-sm text-slate-500 px-1">Quedan ${nSteps - 1 - state.step} pasos más.</p>` : ''}
     </section>
     <section class="lg:col-span-2 space-y-3">
       ${acc('Ver datos de anamnesis', 'message-circle', info.anamnesis)}
       ${acc('Ver examen físico', 'stethoscope', info.examenFisico)}
       ${acc('Ver exámenes complementarios', 'flask-conical', info.complementarios)}
-      ${!info.anamnesis && !info.examenFisico && !info.complementarios ? '<p class="text-sm text-slate-500 px-1">Esta estación no tiene información a demanda. Todo está en la puerta.</p>' : ''}
       ${missed.length ? `
       <details class="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40">
         <summary class="p-4 flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300"><span class="flex items-center gap-2"><i data-lucide="history" class="w-4 h-4"></i>Recordatorio: omitidos en tu intento anterior</span><i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
@@ -1563,9 +1783,12 @@ function renderStation() {
         <label class="text-sm font-semibold flex items-center gap-2 mb-2"><i data-lucide="pencil" class="w-4 h-4"></i>Borrador rápido (opcional)</label>
         <textarea id="notes" rows="5" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-sm" placeholder="Apuntes, no se evalúan">${esc(state.notes)}</textarea>
       </div>
+      <button onclick="if(confirm('¿Finalizar el caso y volver al menú? Este intento no se guardará.')) backToDashboard()" class="w-full px-4 py-3 rounded-xl border-2 border-slate-300 dark:border-slate-700 font-semibold flex items-center justify-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="flag-triangle-right" class="w-4 h-4"></i>Finalizar caso y volver al menú</button>
     </section>
   </main>`;
 }
+function markStep(v) { state.steps[state.step].items.forEach(i => state.checks[i.idItem] = v); saveNotes(); render(); }
+function updateStepScore() { const el = document.getElementById('stepScore'); if (el) { const s = stepScore(state.steps[state.step]); el.textContent = `${s.got} / ${s.tot}`; } }
 
 // ---------- Pauta ----------
 function scoreNow(c) {
@@ -1576,12 +1799,14 @@ function scoreNow(c) {
 }
 function renderPauta() {
   const c = getCase(state.current);
-  const groups = {};
-  c.pautaCotejo.forEach(i => { (groups[i.categoria] = groups[i.categoria] || []).push(i); });
+  let groupList;
+  const st = state.steps && state.steps.length && !state.steps[0].all ? state.steps : null;
+  if (st) groupList = st.filter(s => s.items.length).map((s) => [s.global ? 'Evaluación global' : `Pregunta ${st.indexOf(s) + 1}: ${s.q}`, s.items]);
+  else { const groups = {}; c.pautaCotejo.forEach(i => { (groups[i.categoria] = groups[i.categoria] || []).push(i); }); groupList = Object.entries(groups); }
   const s = scoreNow(c);
-  const groupHtml = Object.entries(groups).map(([cat, items]) => `
+  const groupHtml = groupList.map(([cat, items]) => `
     <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden">
-      <div class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 font-semibold text-sm flex justify-between"><span>${esc(cat)}</span><span class="text-slate-500">${round1(items.reduce((a, i) => a + Number(i.peso || 0), 0))} pts</span></div>
+      <div class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 font-semibold text-sm flex justify-between gap-3"><span>${esc(cat)}</span><span class="text-slate-500">${round1(items.reduce((a, i) => a + Number(i.peso || 0), 0))} pts</span></div>
       <div class="divide-y divide-slate-100 dark:divide-slate-800">
         ${items.map(i => `
         <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -1651,7 +1876,7 @@ function renderMissedBox(c) {
     <ul class="list-disc pl-6 space-y-1 text-sm text-rose-900 dark:text-rose-200">${missed.map(i => `<li>${esc(i.descripcion)} <span class="opacity-70">(${i.peso} pts${i.critico ? ', crítico' : ''})</span></li>`).join('')}</ul>
   </div>`;
 }
-function toggleCheck(id, v) { state.checks[id] = v; updateScoreUI(); }
+function toggleCheck(id, v) { state.checks[id] = v; if (state.view === 'pauta') updateScoreUI(); else updateStepScore(); }
 function markAll(v) { const c = getCase(state.current); c.pautaCotejo.forEach(i => state.checks[i.idItem] = v); render(); }
 function updateScoreUI() {
   const c = getCase(state.current), s = scoreNow(c);
@@ -1741,8 +1966,8 @@ function clearCustom() { if (confirm('¿Quitar los casos agregados manualmente?'
 // ---------- Teclado ----------
 document.addEventListener('keydown', e => {
   const tag = (e.target.tagName || '').toLowerCase();
-  const typing = tag === 'textarea' || tag === 'input' || tag === 'select';
-  if (state.view === 'station' && !typing && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); goToPauta(); }
+  const typing = tag === 'textarea' || tag === 'select' || (tag === 'input' && !['checkbox', 'radio'].includes(e.target.type));
+  if (state.view === 'station' && !typing && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); if (state.phase === 'answer') showStepPauta(); else nextStep(); }
   else if (state.view === 'dashboard' && !typing && (e.key === 'r' || e.key === 'R')) { e.preventDefault(); randomStation(); }
   else if (e.key === 'Escape') closeModal();
 });
