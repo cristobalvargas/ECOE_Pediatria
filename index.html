@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECOE Pediatría y Neonatología</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  if (window.tailwind) tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter','system-ui','-apple-system','Segoe UI','Roboto','sans-serif'] } } } };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  .chk { width: 1.4rem; height: 1.4rem; accent-color: #0d9488; cursor: pointer; flex-shrink: 0; }
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] .chev { transform: rotate(180deg); }
+  .chev { transition: transform .2s; }
+  .scroll-thin::-webkit-scrollbar { width: 6px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+  @keyframes pulseRed { 0%,100% { opacity: 1 } 50% { opacity: .55 } }
+  .pulse-red { animation: pulseRed 1s infinite; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+<div id="app"></div>
+<div id="modal-root"></div>
+
+<script>
+// ================== DATOS DE CASOS ==================
+const CASES_DATA = [];
+// ---------- Helper para construir casos ----------
+const CAT = { A: 'Anamnesis', E: 'Examen Físico', D: 'Diagnóstico', M: 'Manejo y Educación', C: 'Comunicacional' };
+function addCase(o) {
+  CASES_DATA.push({
+    id: o.id,
+    numeroEstacion: o.n,
+    titulo: o.titulo,
+    especialidad: o.esp,
+    escenario: o.escenario,
+    tipoPauta: o.tipo,
+    instruccionPuerta: { vineta: o.vineta, signosVitales: o.sv || {}, tareas: o.tareas },
+    infoDesbloqueable: { anamnesis: o.an || '', examenFisico: o.ef || '', complementarios: o.cx || '' },
+    pautaCotejo: o.items.map((it, i) => ({ idItem: o.id + '-' + (i + 1), categoria: CAT[it[0]] || it[0], descripcion: it[1], peso: it[2], critico: !!it[3] })),
+    perlasClinicas: o.perlas,
+    notasActualizacion: o.notas || ''
+  });
+}
+
+// ================== NEONATOLOGÍA ==================
+addCase({
+  id: 'neo-01', n: 1, esp: 'Neonatología', tipo: 'oficial', escenario: 'Puerperio',
+  titulo: 'Hiperbilirrubinemia neonatal de causa hemolítica',
+  vineta: 'Está de turno en Neonatología y lo llaman a Puerperio para evaluar a un RNT de 38 semanas, AEG, hijo de madre primípara, en quien se pesquisó ictericia hasta los muslos a las 18 horas de vida. La matrona tomó bilirrubina, hematocrito y reticulocitos.',
+  tareas: ['Plantee el diagnóstico de trabajo más probable e interprete la bilirrubina en la curva correspondiente.', 'Señale las indicaciones que deja a este paciente.', 'Tras 4 horas de tratamiento la bilirrubina es 18 mg/dl. ¿Cuál es su indicación?'],
+  cx: 'Exámenes a las 18 horas de vida: bilirrubina total 12,2 mg/dl, hematocrito 45%, reticulocitos 8%.\n\nControl a las 4 horas de iniciado el tratamiento (revelar en la pregunta 3): bilirrubina total 18 mg/dl.',
+  items: [
+    ['D', 'Diagnóstico: hiperbilirrubinemia neonatal de causa hemolítica (ictericia antes de 24 h con reticulocitosis)', 2, true],
+    ['M', 'Hospitalizar en Intermedio o UCI neonatal', 0.5],
+    ['M', 'Mantener alimentación enteral por ahora', 0.5],
+    ['M', 'Fototerapia intensiva', 2, true],
+    ['M', 'Solicitar grupo, Rh y Coombs directo al RN', 1],
+    ['M', 'Rescatar grupo, Rh y Coombs materno', 1],
+    ['M', 'Control de bilirrubina entre 4 y 6 horas después de iniciada la fototerapia', 1],
+    ['M', 'Con bilirrubina de 18 mg/dl la indicación es exanguinotransfusión', 2, true]
+  ],
+  perlas: 'La ictericia en las primeras 24 horas es siempre patológica. Causas hemolíticas: isoinmunización ABO (madre O, hijo A o B), Rh, esferocitosis hereditaria y déficit de G6PD.\n\nInterpretar siempre por horas de vida y edad gestacional, con curvas AAP 2022. Factores de riesgo de neurotoxicidad: enfermedad hemolítica isoinmune, déficit de G6PD, sepsis, albúmina menor de 3 g/dl, inestabilidad clínica significativa y EG menor de 38 semanas.\n\nFototerapia intensiva: luz azul de alta irradiancia, máxima superficie expuesta, ojos protegidos, mantener hidratación y alimentación.\nEscalada de cuidados cuando la bilirrubina está a 2 mg/dl o menos del umbral de exanguinotransfusión.\nIgIV 0,5 a 1 g/kg EV en 2 horas en hemólisis isoinmune si la bilirrubina sube pese a fototerapia intensiva o está a 2 a 3 mg/dl del umbral de exanguinotransfusión. Mecanismo: bloquea receptores Fc del sistema reticuloendotelial y reduce la hemólisis.\nSignos de encefalopatía bilirrubínica aguda (hipertonía, opistótonos, llanto agudo, fiebre) indican exanguinotransfusión inmediata.\n\nComplicaciones de la fototerapia: aumento de pérdidas insensibles, deposiciones blandas, rash, alteración térmica, síndrome del niño bronceado si hay colestasia.\n\nContraindicaciones:\nFototerapia: colestasia con bilirrubina directa alta (relativa, riesgo de niño bronceado), porfiria congénita.\nIgIV: déficit de IgA con anticuerpos anti IgA, sobrecarga de volumen.',
+  notas: 'El documento trae dos valores de bilirrubina a las 18 horas: 14 mg/dl en la pauta del evaluador y 12,2 mg/dl en la hoja del alumno. Se usó 12,2 mg/dl. Ambos superan el umbral de fototerapia para un RN de 38 semanas con hemólisis.\nSe agregó en perlas la escalada de cuidados e IgIV según AAP 2022, que no está en la pauta oficial.'
+});
+
+addCase({
+  id: 'neo-02', n: 2, esp: 'Neonatología', tipo: 'oficial', escenario: 'Sala de partos',
+  titulo: 'Asfixia neonatal: reanimación, criterios ACOG e hipotermia',
+  vineta: 'RN de sexo masculino, hijo de madre primigesta de 25 años, embarazo controlado fisiológico, SGB desconocido, rotura de membranas de 12 horas, sin fiebre materna. Ingresa a las 39 semanas en trabajo de parto con expulsivo prolongado y monitoreo MEFI tipo II. Requiere fórceps. Nace hipotónico y con escaso esfuerzo respiratorio. Apgar 3, 5, 7.',
+  tareas: ['¿Cuáles son los pasos iniciales de la reanimación?', 'Tras VPP recupera FC mayor de 120, esfuerzo respiratorio y saturación en rango. ¿Qué variables según ACOG definen asfixia neonatal?', '¿Qué variables definen el ingreso a protocolo de hipotermia y cuál es el plazo para ingresarlo?'],
+  items: [
+    ['M', 'Vía aérea permeable en posición de olfateo, aspirar solo si corresponde', 2, true],
+    ['M', 'Colocar en cuna calefaccionada', 1],
+    ['M', 'Secar y estimular', 1],
+    ['M', 'Auscultar frecuencia cardiaca', 1],
+    ['M', 'Sensor de saturación en mano derecha (preductal)', 1],
+    ['D', 'ACOG: acidemia en gases de cordón (pH menor de 7,0 y/o déficit de base de 12 o más)', 1],
+    ['D', 'ACOG: Apgar de 3 o menos a los 5 minutos', 1],
+    ['D', 'ACOG: encefalopatía hipóxico isquémica según Sarnat modificado', 1],
+    ['D', 'ACOG: compromiso multisistémico', 1],
+    ['D', 'Hipotermia: pH de 7,0 o menos o déficit de base de 16 o más en cordón o gas de la primera hora', 1, true],
+    ['D', 'Hipotermia: encefalopatía moderada o severa (Sarnat II o III)', 1, true],
+    ['D', 'Hipotermia: Apgar de 5 o menos a los 10 minutos o ventilación aún necesaria a los 10 minutos', 1],
+    ['D', 'Hipotermia: aEEG alterado si está disponible (apoya, no es obligatorio)', 1],
+    ['D', 'Hipotermia: iniciar dentro de las primeras 6 horas de vida, lo antes posible', 1, true]
+  ],
+  perlas: 'Pasos iniciales (NRP): calor, posición de la vía aérea, aspirar solo si hay obstrucción, secar y estimular. Evaluar respiración y FC.\nVPP si apnea, boqueo o FC menor de 100 lpm dentro del primer minuto. Corregir ventilación con MR SOPA (mascarilla, reposicionar, succionar, abrir boca, aumentar presión, vía aérea alternativa).\nCompresiones si FC menor de 60 lpm tras 30 segundos de VPP efectiva, relación 3:1 con FiO2 100%.\nAdrenalina 0,02 mg/kg EV (rango 0,01 a 0,03) si FC sigue bajo 60 pese a VPP y compresiones. Mecanismo: agonista alfa y beta adrenérgico, aumenta presión de perfusión coronaria.\n\nHipotermia terapéutica: RN de 36 semanas o más, 33 a 34 °C de temperatura central por 72 horas, recalentamiento 0,5 °C por hora. El beneficio es mayor mientras antes se inicia.\n\nContraindicaciones:\nHipotermia: más de 6 horas de vida, malformaciones mayores incompatibles con la vida, sangrado activo grave o coagulopatía no controlada (relativa), EG menor de 36 semanas (fuera de protocolo habitual).\nAdrenalina en reanimación neonatal: sin contraindicaciones absolutas en paro.',
+  notas: 'Criterio ACOG de gases: el documento usaba déficit de base menor de menos 15. ACOG usa pH menor de 7,0 y/o déficit de base de 12 mmol/l o más.\nCriterios de hipotermia actualizados según NICHD y TOBY: déficit de base de 16 o más (no 15), Apgar de 5 o menos a los 10 minutos (no a los 5) o ventilación a los 10 minutos. El aEEG es un criterio de apoyo y no obligatorio.'
+});
+
+addCase({
+  id: 'neo-03', n: 3, esp: 'Neonatología', tipo: 'oficial', escenario: 'Atención inmediata',
+  titulo: 'Atención inmediata y pasos iniciales de reanimación',
+  vineta: 'Está de turno en Neonatología y lo llaman a la sala de Atención Inmediata. Recibe un RNT de 38 semanas, hijo de primigesta con embarazo fisiológico y buen control, rotura de membranas de 8 horas, parto vaginal.',
+  tareas: ['¿Qué variables definen que un RN nace vital o vigoroso?', '¿Qué elementos de atención inmediata se realizan en este y en todo RN?', 'Si nace con escaso esfuerzo respiratorio, ¿cuáles son los pasos iniciales de reanimación?'],
+  items: [
+    ['D', 'RN vigoroso: esfuerzo respiratorio y/o llanto, y buen tono', 2, true],
+    ['M', 'Identificación del RN', 2],
+    ['M', 'Evaluación clínica completa', 1],
+    ['M', 'Cuidado y profilaxis del cordón', 0.5],
+    ['M', 'Profilaxis ocular', 0.5],
+    ['M', 'Vitamina K 1 mg IM', 0.5],
+    ['M', 'Vacuna hepatitis B (y BCG según PNI)', 0.5],
+    ['M', 'Antropometría', 1],
+    ['M', 'Nirsevimab si corresponde al periodo de VRS', 1],
+    ['M', 'Posicionar la vía aérea, aspirar solo si procede', 2, true],
+    ['M', 'Secar y estimular', 2],
+    ['M', 'Colocar bajo cuna radiante', 1],
+    ['M', 'Saturómetro preductal (mano derecha)', 1]
+  ],
+  perlas: 'En RN vigoroso: contacto piel a piel inmediato y clampeo tardío del cordón (al menos 30 a 60 segundos). La atención inmediata no debe interrumpir el apego si el RN está estable.\n\nVitamina K (fitomenadiona) 1 mg IM, 0,5 mg si pesa menos de 1500 g. Mecanismo: cofactor de la gamma carboxilación de los factores II, VII, IX y X. Previene la enfermedad hemorrágica del RN.\nProfilaxis ocular: ungüento o colirio antibiótico según protocolo local.\nPNI Chile del RN: BCG y hepatitis B.\nNirsevimab: anticuerpo monoclonal contra la proteína F prefusión del VRS. 50 mg IM si pesa menos de 5 kg, 100 mg si pesa 5 kg o más. En 2026 cubre a nacidos desde el 1 de octubre de 2025.\n\nContraindicaciones:\nBCG: peso menor de 2000 g (diferir), inmunodeficiencia, hijo de madre VIH hasta descartar infección.\nNirsevimab: hipersensibilidad grave previa al fármaco.\nVitamina K: hipersensibilidad (excepcional).',
+  notas: 'Se agregó BCG, que corresponde al RN en el PNI Chile 2026. La pauta oficial asigna 0,5 puntos a cada profilaxis (cordón, ocular, vitamina K y hepatitis B).'
+});
+
+addCase({
+  id: 'neo-04', n: 4, esp: 'Neonatología', tipo: 'oficial', escenario: 'Atención inmediata',
+  titulo: 'Hipoglicemia neonatal sintomática con poliglobulia',
+  vineta: 'Lo llaman a Atención Inmediata para evaluar a un RN de 38 semanas, GEG de 4150 g y 1 hora de vida, porque está tembloroso y sudoroso.',
+  tareas: ['¿Cuál es el diagnóstico de trabajo?', '¿Cuál es el manejo inicial?', '¿Cuál es el factor de riesgo para este diagnóstico?'],
+  cx: 'Hemoglucotest: 32 mg/dl.\nHematocrito: 66%.',
+  items: [
+    ['D', 'Hipoglicemia neonatal sintomática asociada a poliglobulia', 2, true],
+    ['M', 'Régimen cero', 2],
+    ['M', 'Bolo de suero glucosado 10% 2 ml/kg (200 mg/kg) EV', 2.5, true],
+    ['M', 'Suero glucosado 10% de mantención con carga de glucosa de 4 a 8 mg/kg/min', 2.5, true],
+    ['M', 'Hospitalizar', 2],
+    ['M', 'Control de glicemia 30 a 60 minutos después del bolo', 2],
+    ['D', 'Factor de riesgo: RN grande para la edad gestacional más poliglobulia', 2]
+  ],
+  perlas: 'Síntomas: temblor, sudoración, irritabilidad, hipotonía, succión débil, apneas, cianosis, hipotermia y convulsiones. Un RN sintomático con glicemia baja se trata por vía EV.\nFactores de riesgo: GEG, hijo de madre diabética, PEG, prematuro, asfixia, poliglobulia, hipotermia y sepsis.\nEvitar bolos concentrados (rebote hiperinsulinémico). Si requiere carga de glucosa mayor de 12 mg/kg/min pensar en hiperinsulinismo.\n\nPoliglobulia: hematocrito venoso de 65% o más. Produce hiperviscosidad y consumo de glucosa. Si es sintomática se indica eritroféresis (exanguinotransfusión parcial con suero fisiológico).\nEn GEG descartar hijo de madre diabética.\n\nContraindicaciones:\nSuero glucosado 10%: no usar concentraciones mayores de 12,5% por vía periférica.',
+  notas: 'El documento indica hematocrito "66 mg/dl". Se interpretó como 66%.'
+});
+
+addCase({
+  id: 'neo-05', n: 5, esp: 'Neonatología', tipo: 'oficial', escenario: 'Puerperio',
+  titulo: 'Sepsis connatal precoz y diagnósticos diferenciales',
+  vineta: 'Usted está en el puerperio. Evalúa a un RNT de 38 semanas, AEG, de 30 horas de vida, hijo de multípara de 1 (hijo sano). Embarazo fisiológico, parto eutócico, rotura de membranas de 20 horas, recibió 2 dosis de ampicilina antes del expulsivo. Apgar 9 y 9, buena evolución inicial, enviado a puerperio con su madre. Llama la atención frecuencia respiratoria de 75 por minuto, leve hipotonía, succión corta y débil, quejido intermitente. En las últimas 8 horas solo se alimenta en forma irregular al pecho.',
+  sv: { FR: '75 rpm' },
+  tareas: ['¿Qué antecedentes debe recolectar de la historia clínica y del examen físico?', '¿Cuáles son los diagnósticos más probables?', '¿Cuál es la conducta y el tratamiento más adecuado?'],
+  items: [
+    ['A', 'Fiebre materna mayor de 38 °C', 0.5],
+    ['A', 'Corioamnionitis', 1],
+    ['A', 'Madre portadora de estreptococo grupo B', 1],
+    ['E', 'Presión arterial en las 4 extremidades', 0.5],
+    ['E', 'Saturación pre y postductal', 1],
+    ['D', 'Sepsis connatal precoz', 1, true],
+    ['D', 'Hipoglicemia', 1],
+    ['D', 'Cardiopatía congénita', 0.5],
+    ['D', 'Enfermedad metabólica', 0.5],
+    ['M', 'Hemoglucotest o glicemia de urgencia', 1.5],
+    ['M', 'Hospitalizar', 1],
+    ['M', 'Tomar hemocultivo antes del antibiótico', 1],
+    ['M', 'Iniciar ampicilina más gentamicina', 1.5, true],
+    ['M', 'Evaluación cardiológica (ecocardiograma)', 1.5],
+    ['M', 'Hemograma, PCR y exámenes metabólicos (0,5 cada uno)', 1.5]
+  ],
+  perlas: 'Sepsis precoz: antes de 72 horas de vida, por transmisión vertical (SGB, E. coli, Listeria). La rotura de membranas de 18 horas o más es factor de riesgo. Profilaxis intraparto adecuada: penicilina, ampicilina o cefazolina al menos 4 horas antes del parto.\nSignos inespecíficos: dificultad respiratoria, rechazo alimentario, hipotonía, inestabilidad térmica, apneas, mala perfusión.\n\nEsquema empírico:\nAmpicilina 50 mg/kg/dosis EV cada 12 horas en RN de término de 7 días o menos (dosis meníngea mayor). Mecanismo: betalactámico, inhibe la síntesis de pared uniéndose a PBP.\nGentamicina 4 mg/kg/dosis EV cada 24 horas en RN de término. Mecanismo: aminoglicósido, inhibe la subunidad ribosomal 30S.\nPunción lumbar si hemocultivo positivo, clínica neurológica o deterioro. Duración habitual 7 a 10 días en bacteriemia sin meningitis.\n\nContraindicaciones:\nAmpicilina: alergia grave a betalactámicos.\nGentamicina: precaución en falla renal y con otros nefrotóxicos u ototóxicos, ajustar por niveles.',
+  notas: 'Se agregó en perlas que la rotura de membranas de 20 horas es un factor de riesgo y las dosis neonatales actualizadas de ampicilina y gentamicina.'
+});
+
+addCase({
+  id: 'neo-06', n: 6, esp: 'Neonatología', tipo: 'oficial', escenario: 'Servicio de Urgencia',
+  titulo: 'Encefalopatía hipóxico isquémica',
+  vineta: 'De turno en el Servicio de Urgencia recibe el llamado por una embarazada con metrorragia severa. Recibe a un RNT de 38 semanas, AEG, no vigoroso, que requiere reanimación con VPP con lo que se recupera. Apgar 3, 5, 9. Tras la reanimación y a la hora de vida está hipotónico, poco reactivo a estímulos, con succión débil y ROT disminuidos.',
+  tareas: ['¿Cuál es el diagnóstico de trabajo más probable?', '¿Qué examen solicita en Atención Inmediata para complementar el estudio?', '¿Cuál es el manejo inicial más adecuado?', '¿Qué hace si su centro no cuenta con monitorización ni terapia apropiada?'],
+  items: [
+    ['D', 'Encefalopatía hipóxico isquémica en evolución, moderada (grado II)', 2, true],
+    ['M', 'Gases de cordón, o gas periférico precoz si no hay gas de cordón', 2, true],
+    ['M', 'Régimen cero más fleboclisis', 1],
+    ['M', 'Hipotermia pasiva o terapéutica', 2.5, true],
+    ['M', 'Hospitalizar en UCI neonatal', 2.5],
+    ['M', 'Examen neurológico seriado', 2],
+    ['M', 'Monitorización con EEG continuo o aEEG si está disponible', 1],
+    ['M', 'Trasladar antes de las 6 horas de vida en hipotermia pasiva', 2, true]
+  ],
+  perlas: 'Sarnat: leve (hiperalerta, tono normal), moderada (letargia, hipotonía, succión débil, miosis, convulsiones frecuentes), severa (estupor o coma, flacidez, reflejos ausentes).\nEvento centinela de este caso: metrorragia severa (probable desprendimiento placentario).\n\nHipotermia pasiva: apagar la cuna radiante, monitorizar temperatura central cada 15 minutos, objetivo 33 a 34 °C, evitar bajar de 33 °C.\nNeuroprotección general: evitar hipertermia, hipoglicemia e hiperglicemia, hipocapnia e hipotensión. Tratar convulsiones.\nFenobarbital 20 mg/kg EV de carga para convulsiones. Mecanismo: potencia la acción GABA-A.\n\nContraindicaciones:\nHipotermia: más de 6 horas de vida, malformaciones incompatibles con la vida, sangrado grave activo (relativa).\nFenobarbital: depresión respiratoria sin soporte ventilatorio disponible, porfiria.'
+});
+
+addCase({
+  id: 'neo-07', n: 7, esp: 'Neonatología', tipo: 'oficial', escenario: 'Atención inmediata',
+  titulo: 'Síndrome de distrés respiratorio: taquipnea transitoria',
+  vineta: 'Se le solicita evaluar a un RN en Atención Inmediata que a las 4 horas de vida persiste con requerimiento de oxígeno a flujo libre y quejido.',
+  tareas: ['¿Qué antecedentes relevantes de la anamnesis debe recopilar?', '¿Qué indicaciones iniciales deja?', '¿Qué diagnóstico sindromático y etiológico plantea?'],
+  an: 'RNT 37 semanas, AEG, peso de nacimiento 3500 g. Embarazo controlado con evolución fisiológica. Screening infeccioso negativo. Nace por cesárea de urgencia por preeclampsia severa. No recibió corticoides. Nace en buenas condiciones, líquido claro, sin patología de cordón, rotura de membranas intraparto.',
+  cx: 'Radiografía de tórax (solo si la solicitó): compatible con taquipnea transitoria. Líquido en cisuras, trama vascular perihiliar aumentada, leve hiperinsuflación, sin broncograma aéreo.',
+  items: [
+    ['A', 'Edad gestacional y peso de nacimiento', 0.5],
+    ['A', 'Tipo de parto', 0.5],
+    ['A', 'Sufrimiento fetal agudo o meconio durante el parto', 0.5],
+    ['A', 'Antecedente prenatal de cardiopatía congénita u otra malformación relevante', 0.5],
+    ['A', 'Factores de riesgo de infección: rotura de membranas mayor de 18 h, fiebre materna, screening infeccioso, SGB (2 o más)', 1],
+    ['M', 'Hospitalizar', 1],
+    ['M', 'Régimen cero más fleboclisis', 0.5],
+    ['M', 'Saturación pre y postductal', 0.5],
+    ['M', 'Hematocrito, hemoglucotest y gases arteriales', 1],
+    ['M', 'Radiografía de tórax', 1],
+    ['D', 'Síndrome de distrés respiratorio del recién nacido', 2, true],
+    ['D', 'Sospecha de taquipnea transitoria o distrés adaptativo', 1, true]
+  ],
+  perlas: 'Taquipnea transitoria: retraso en la reabsorción de líquido pulmonar. Factores: cesárea sin trabajo de parto, término precoz, diabetes materna. Se resuelve en 24 a 72 horas. Manejo de soporte con oxígeno y CPAP si es necesario.\n\nDiferenciales: enfermedad de membrana hialina (prematuro, vidrio esmerilado y broncograma aéreo), neumonía connatal, síndrome de aspiración meconial, neumotórax, cardiopatía congénita, hipertensión pulmonar persistente.\nEvaluar gravedad con Silverman Andersen o Downes.',
+  notas: 'El ítem "antecedente prenatal de cardiopatía" aparece sin puntaje en el documento. Se asignó 0,5, que es lo único que cuadra con el total oficial de 10 puntos.'
+});
+
+addCase({
+  id: 'neo-08', n: 8, esp: 'Neonatología', tipo: 'oficial', escenario: 'Atención inmediata',
+  titulo: 'Atención y seguimiento del RN con trisomía 21',
+  vineta: 'Lo llaman a Atención Inmediata. Recibe un RNT de 37 semanas, hijo de multípara de 2 de 35 años, embarazo fisiológico con buen control. La ecografía de 22 semanas mostró alteraciones estructurales compatibles con genopatía y el cariograma por amniocentesis confirmó trisomía 21. Trabajo de parto fisiológico, rotura de membranas de 8 horas, parto vaginal.',
+  tareas: ['¿Qué patologías son más prevalentes en atención inmediata y deben ser evaluadas?', 'Además de la atención inmediata estándar, ¿qué evaluaciones o exámenes realiza antes de enviarlo con su madre?', 'Ya en puerperio con su madre, ¿qué variables debe evaluar sucesivamente?'],
+  items: [
+    ['D', 'Depresión neonatal o necesidad de reanimación', 0.5],
+    ['D', 'Alteración de la termorregulación', 0.5],
+    ['D', 'Poliglobulia', 1],
+    ['D', 'Hipoglicemia', 1],
+    ['D', 'Alteración de succión y deglución', 1],
+    ['M', 'Hematocrito', 1],
+    ['M', 'Glicemia', 1],
+    ['M', 'Evaluación cardiológica completa, ecocardiograma si es posible', 1, true],
+    ['M', 'Evaluar coordinación succión y deglución (al pecho o con chupete)', 1],
+    ['M', 'Evaluación de lactancia: acople, peso y deposiciones', 2],
+    ['M', 'Evaluación hematológica', 1],
+    ['M', 'Evaluación de función tiroidea', 1],
+    ['M', 'Evaluación y seguimiento cardiológico', 1],
+    ['M', 'Ecografía encefálica', 1],
+    ['M', 'Consejería genética', 1]
+  ],
+  perlas: 'Cardiopatía congénita en cerca de la mitad (canal AV es la más característica). Ecocardiograma en todos.\nGastrointestinal: atresia duodenal (doble burbuja), enfermedad de Hirschsprung.\nHematológico: hemograma con frotis por trastorno mieloproliferativo transitorio, poliglobulia y trombocitopenia.\nTiroides: TSH neonatal, a los 6 meses, a los 12 meses y luego anual.\nTamizaje auditivo y rojo pupilar (cataratas congénitas).\nComunicar el diagnóstico a ambos padres juntos, en lugar privado, con lenguaje positivo, y derivar a consejería genética.',
+  notas: 'La ecografía encefálica está en la pauta oficial, pero no es una recomendación de rutina en la guía AAP 2022 para trisomía 21. Se agregaron en perlas el hemograma con frotis, el tamizaje auditivo y el rojo pupilar, que sí lo son.'
+});
+
+addCase({
+  id: 'neo-09', n: 9, esp: 'Neonatología', tipo: 'construida', escenario: 'Sala de neonatología',
+  titulo: 'Soplo cardiaco en recién nacido',
+  vineta: 'RN de 2 semanas de vida que en el control presenta un soplo holosistólico audible en todo el precordio.',
+  tareas: ['Realice anamnesis dirigida a la madre.', 'Mencione los signos que busca al examen físico.', 'Plantee su conducta, indicaciones y plazo de derivación.'],
+  an: 'La madre refiere que se cansa y suda al mamar, hace pausas frecuentes. Ha subido poco de peso. Sin cianosis evidente. Sin antecedentes familiares conocidos.',
+  ef: 'Soplo holosistólico III/VI en mesocardio con irradiación amplia. FR 64 rpm, FC 168 lpm. Hígado a 3 cm bajo el reborde costal. Pulsos simétricos en las 4 extremidades.',
+  items: [
+    ['A', 'Cianosis o cambio de color con el llanto o la alimentación', 1],
+    ['A', 'Fatiga, sudoración o pausas al alimentarse', 1],
+    ['A', 'Incremento ponderal', 1],
+    ['A', 'Antecedentes perinatales (fármacos en el embarazo) y familiares de cardiopatía', 1],
+    ['E', 'Pulsos y presión arterial en las 4 extremidades', 1, true],
+    ['E', 'Saturación pre y postductal', 1],
+    ['E', 'Signos de insuficiencia cardiaca: taquipnea, taquicardia, hepatomegalia, crépitos', 1],
+    ['E', 'Caracterizar el soplo: grado, foco, irradiación y segundo ruido', 0.5],
+    ['D', 'Soplo patológico con sospecha de cardiopatía congénita', 1, true],
+    ['M', 'Hospitalizar', 1],
+    ['M', 'ECG, radiografía de tórax y ecocardiograma', 1],
+    ['M', 'Interconsulta a cardiología infantil dentro de 48 horas', 1, true],
+    ['M', 'Alimentación fraccionada optimizando calorías, oxígeno para saturación objetivo y peso diario', 0.5]
+  ],
+  perlas: 'Soplo inocente: sistólico o continuo, grado III o menor, segundo ruido normal, varía con la posición, poca irradiación.\nSoplo patológico: grado mayor de III, diastólico, holosistólico, segundo ruido anormal, no varía con la posición, irradiación amplia.\n\nHolosistólico en borde esternal izquierdo sugiere CIV. El ductus persistente da un soplo continuo en maquinaria infraclavicular izquierdo con pulsos saltones.\nTamizaje con saturometría: normal si es de 95% o más en mano derecha y pie, con diferencia de 3% o menos.\n\nSi hay sospecha de cardiopatía ductus dependiente: prostaglandina E1 0,01 a 0,05 µg/kg/min EV. Mecanismo: relaja el músculo liso del ductus y lo mantiene abierto. Efecto adverso principal: apneas.\n\nContraindicaciones:\nProstaglandina E1: sin contraindicación absoluta en cardiopatía ductus dependiente, usar con capacidad de soporte ventilatorio.',
+  notas: 'Checklist construido desde el apunte de Pediatría. El apunte decía que un soplo holosistólico en todo el precordio corresponde a ductus. Lo característico del ductus es un soplo continuo, el holosistólico orienta más a CIV.'
+});
+
+addCase({
+  id: 'neo-10', n: 10, esp: 'Neonatología', tipo: 'oficial', escenario: 'Puerperio',
+  titulo: 'Hipoglicemia neonatal persistente',
+  vineta: 'Está de turno en Neonatología y lo llaman de Puerperio para evaluar a un RN de 38 semanas, AEG, de 48 horas de vida, porque no se alimenta bien y está tembloroso. Es hijo de una madre multípara sin antecedentes mórbidos ni patologías del embarazo. Al evaluarlo lo nota somnoliento y efectivamente tembloroso.',
+  tareas: ['¿Cuál es el diagnóstico de trabajo más probable?', '¿Cuál es el manejo inicial más adecuado?', '¿Qué factor de riesgo reconoce para este diagnóstico?', '¿Tiene indicación de estudiar la causa de la hipoglicemia?', '¿Cuáles son los pasos para realizar el diagnóstico diferencial?'],
+  cx: 'Hemoglucotest: 37 mg/dl.\nHematocrito: 54%.',
+  items: [
+    ['D', 'Hipoglicemia neonatal sintomática', 2, true],
+    ['M', 'Régimen cero', 0.5],
+    ['M', 'Bolo de suero glucosado 10% 2 ml/kg (200 mg/kg) EV', 0.5, true],
+    ['M', 'Suero glucosado 10% de mantención con carga de glucosa de 4 a 8 mg/kg/min', 0.5],
+    ['M', 'Hospitalizar', 0.5],
+    ['M', 'Control de glicemia 30 a 60 minutos después del bolo', 0.5],
+    ['M', 'Reevaluación clínica después de corregir la hipoglicemia', 2],
+    ['D', 'Factor de riesgo: ninguno (RN de término AEG, madre sana, hematocrito normal)', 2, true],
+    ['D', 'Sí tiene indicación de estudiar la causa', 2, true],
+    ['M', 'Si persiste la hipoglicemia pese a cargas de glucosa de 12 mg/kg/min, tomar muestra crítica', 2],
+    ['M', 'Si no presenta hipoglicemia espontánea al suprimir la carga de glucosa, realizar prueba de ayuno con su muestra crítica', 1.5],
+    ['M', 'Interconsulta a endocrinología', 1]
+  ],
+  perlas: 'Claves del caso: hipoglicemia sintomática a las 48 horas en un RN sin factores de riesgo y con hematocrito normal. La hipoglicemia transicional ocurre en las primeras 24 a 48 horas. Pasado ese plazo, o sin factor de riesgo que la explique, se debe estudiar una causa persistente.\nMetas de la Pediatric Endocrine Society: glicemia mayor de 50 mg/dl en las primeras 48 horas y mayor de 60 mg/dl después de las 48 horas (mayor de 70 si se sospecha un trastorno genético).\n\nCausas de hipoglicemia persistente: hiperinsulinismo (la más frecuente), hipopituitarismo o déficit de cortisol o GH, errores innatos del metabolismo (glucogenosis, defectos de oxidación de ácidos grasos, galactosemia), síndrome de Beckwith Wiedemann.\nSospechar hiperinsulinismo si requiere carga de glucosa mayor de 8 a 10 mg/kg/min.\n\nMuestra crítica (tomada durante la hipoglicemia, antes de corregirla): glicemia, insulina, péptido C, beta hidroxibutirato, ácidos grasos libres, cortisol, GH, lactato, amonio, gases, perfil de acilcarnitinas y cetonas en orina. Luego, prueba de glucagón.\nPatrón de hiperinsulinismo: insulina detectable, beta hidroxibutirato y ácidos grasos libres bajos, respuesta glicémica al glucagón.\n\nFármacos:\nGlucagón 0,02 a 0,03 mg/kg IM o EV en hipoglicemia refractaria o sin acceso venoso. Mecanismo: estimula la glucogenolisis hepática. Es útil solo si hay glucógeno (hiperinsulinismo), no en glucogenosis o ayuno prolongado.\nDiazóxido 5 a 15 mg/kg/día VO dividido cada 8 a 12 horas en hiperinsulinismo persistente. Mecanismo: abre los canales de K ATP de la célula beta e inhibe la secreción de insulina.\n\nContraindicaciones:\nGlucagón: feocromocitoma, insulinoma (puede causar hipoglicemia de rebote).\nDiazóxido: hipersensibilidad a tiazidas, insuficiencia cardiaca o sobrecarga de volumen (retención hídrica), hipertensión pulmonar.\nSuero glucosado: concentraciones mayores de 12,5% no por vía periférica.',
+  notas: 'En la pauta oficial los ítems a a e del manejo inicial comparten un solo puntaje de 2,5. Se repartió en 0,5 por ítem para que el total siga siendo 15.\nSe agregó en perlas el contenido de la muestra crítica, las metas de la Pediatric Endocrine Society y los fármacos de segunda línea, que no están en el documento.'
+});
+
+// ================== PEDIATRÍA (parte 1) ==================
+addCase({
+  id: 'ped-01', n: 1, esp: 'Pediatría', tipo: 'oficial', escenario: 'Consulta APS',
+  titulo: 'Varicela: consejería a la madre',
+  vineta: 'La señora María Paz consulta por su hija de 4 años con fiebre de 38,5 °C axilar y "pintas" en todo el cuerpo, que comprometen cuero cabelludo y zona retroauricular. Le ha puesto talco mentolado y le ha dado paracetamol. Tiene además un hijo de 13 años. Sin antecedentes personales ni familiares relevantes.',
+  tareas: ['Salude y preséntese.', 'Explique el diagnóstico a la madre y responda sus preguntas.', 'Entregue indicaciones de manejo, signos de alarma y manejo del hermano.'],
+  an: 'Preguntas que hará la madre:\n¿Qué tiene mi hija? ¿Es lo mismo que la alfombrilla? ¿Por qué le pasó? ¿Hace cuánto se contagió? ¿Cuánto le va a durar? ¿Qué le doy para la picazón? ¿Le sigo poniendo talco mentolado? ¿La puedo bañar? ¿Qué le doy de comer? ¿Qué le doy para la fiebre? ¿La puedo mandar al jardín? ¿Cuánto tiempo va a contagiar? ¿Qué le va a pasar a mi hijo de 13 años? (no ha tenido varicela ni está vacunado, aún sin lesiones)',
+  ef: 'Exantema polimorfo con lesiones en distintos estadios: máculas, pápulas, vesículas en gota de rocío y costras. Compromete cuero cabelludo, tronco y zona retroauricular. Sin signos de sobreinfección.',
+  items: [
+    ['D', 'Menciona el diagnóstico de varicela', 0.5, true],
+    ['M', 'Aclara que es la "peste cristal", distinta de la alfombrilla (sarampión)', 0.5],
+    ['M', 'Explica que se contagió de otra persona enferma', 0.5],
+    ['M', 'Periodo de incubación de 10 a 21 días', 0.5],
+    ['M', 'Duración de 7 a 10 días', 0.5],
+    ['M', 'Contagia desde 1 a 2 días antes del exantema hasta que todas las lesiones están en costra', 0.5],
+    ['M', 'Indica antihistamínico oral para el prurito (hidroxicina o clorfenamina)', 0.5],
+    ['M', 'Suspende el talco mentolado y cremas', 0.5],
+    ['M', 'Indica baño diario sin refregar y uñas cortas', 0.5],
+    ['M', 'Alimentación habitual a tolerancia y líquidos abundantes', 0.5],
+    ['M', 'Paracetamol para la fiebre, sin ibuprofeno ni aspirina', 0.5, true],
+    ['M', 'Suspende el jardín hasta que todas las lesiones estén en costra', 0.5],
+    ['M', 'Indica consulta precoz del hermano', 0.5],
+    ['M', 'Hermano mayor de 12 años: vacuna post exposición si no tiene lesiones, o aciclovir oral si inicia lesiones', 0.5],
+    ['M', 'Menciona al menos 3 signos de alarma: sobreinfección cutánea, fiebre persistente, tos o dificultad respiratoria, somnolencia o compromiso de conciencia, dificultad para caminar, vómitos', 0.5],
+    ['C', 'Pregunta si entendió o si tiene dudas', 0.5],
+    ['C', 'Paciente simulado: fue amable', 0.5],
+    ['C', 'Paciente simulado: usó lenguaje comprensible', 0.5],
+    ['C', 'Paciente simulado: contestó atingentemente todas las preguntas', 0.5],
+    ['C', 'Paciente simulado: transmitió seguridad', 0.5]
+  ],
+  perlas: 'Diagnóstico clínico: exantema pruriginoso polimorfo en distintos estadios, inicio en cuero cabelludo y tronco.\n\nPrurito: hidroxicina 2 mg/kg/día VO dividida cada 6 a 8 horas. Mecanismo: antihistamínico H1 de primera generación. Alternativa clorfenamina 0,35 mg/kg/día cada 6 horas.\nFiebre: paracetamol 15 mg/kg/dosis VO cada 6 horas, máximo 75 mg/kg/día. Mecanismo: inhibición central de la COX.\nAciclovir oral 20 mg/kg/dosis 4 veces al día por 5 días (máximo 800 mg por dosis), idealmente dentro de 24 horas del exantema. Mecanismo: análogo de guanosina que inhibe la ADN polimerasa viral. Indicado en mayores de 12 años, enfermedad crónica cutánea o pulmonar, uso de salicilatos o corticoides y caso secundario en el hogar. Aciclovir EV 10 mg/kg cada 8 horas en inmunocomprometidos o varicela grave.\nVacuna post exposición dentro de 3 a 5 días en susceptibles de 12 meses o más. Inmunoglobulina específica hasta 10 días en inmunocomprometidos, embarazadas susceptibles, RN de madre con varicela periparto y prematuros.\nPNI Chile: varicela a los 18 y 36 meses.\n\nContraindicaciones:\nAspirina: síndrome de Reye.\nIbuprofeno y otros AINE: evitar en varicela por asociación con infecciones invasoras por estreptococo.\nHidroxicina: QT largo, hipersensibilidad.\nAciclovir: ajustar dosis en falla renal y asegurar hidratación.\nVacuna de varicela: embarazo, inmunocompromiso.',
+  notas: 'El apunte decía en la pauta "periodo de contagio 3 a 4 días después de la erupción", lo que contradice su propio texto. Se corrigió a desde 1 a 2 días antes del exantema hasta que todas las lesiones estén en costra.\nSe agregó evitar ibuprofeno con su fundamento real (infección estreptocócica invasora), además de Reye para la aspirina.'
+});
+
+addCase({
+  id: 'ped-02', n: 2, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Enfermedad de Kawasaki',
+  vineta: 'Madre consulta por su hijo de 3 años con fiebre de 6 días que no cede con antipiréticos, asociada a exantema, labios y ojos rojos.',
+  sv: { FC: '140 lpm', Temp: '39,5 °C', SatO2: '98% amb' },
+  tareas: ['Realice anamnesis dirigida.', 'Plantee su hipótesis diagnóstica y los exámenes a solicitar.', 'Indique el manejo y explíquelo a la madre.'],
+  an: 'Ojos rojos sin secreción. Labios rojos y partidos. Manos y pies hinchados y rojos desde hace 2 días. Bulto en el cuello. Irritable. Sin contactos enfermos, sin viajes, vacunas al día.',
+  ef: 'Conjuntivitis bulbar bilateral no purulenta que respeta el limbo. Labios fisurados, lengua aframbuesada. Exantema maculopapular polimorfo en tronco. Edema indurado de manos y pies con eritema palmoplantar. Adenopatía cervical anterior unilateral de 2 cm.',
+  cx: 'Hemograma: leucocitosis con neutrofilia, anemia normocítica, plaquetas normales. PCR 120 mg/l, VHS 80 mm/h. Albúmina 2,9 g/dl. Orina completa con piuria estéril.',
+  items: [
+    ['A', 'Precisa la duración de la fiebre (5 días o más)', 0.5],
+    ['A', 'Busca dirigidamente los 5 criterios: conjuntivitis, cambios orofaríngeos, exantema, cambios en extremidades y adenopatía cervical', 1],
+    ['A', 'Pregunta contactos, viajes y vacunas (diferencial con sarampión)', 0.5],
+    ['D', 'Enfermedad de Kawasaki: fiebre de 5 días o más y 4 de 5 criterios', 2, true],
+    ['D', 'Menciona diferenciales: sarampión, adenovirus, escarlatina, shock tóxico, VEB', 0.5],
+    ['M', 'Solicita ecocardiograma', 1.5, true],
+    ['M', 'Hemograma, PCR o VHS, perfil hepático, albúmina y orina completa', 1],
+    ['M', 'Hospitalizar', 1],
+    ['M', 'Inmunoglobulina EV 2 g/kg en infusión de 10 a 12 horas', 2, true],
+    ['M', 'Aspirina en dosis antiinflamatoria hasta 48 a 72 h afebril, luego 3 a 5 mg/kg/día', 1.5],
+    ['M', 'No espera el ecocardiograma para iniciar tratamiento si el cuadro es claro', 0.5],
+    ['C', 'Explica que es una vasculitis cuyo riesgo principal son los aneurismas coronarios y que el tratamiento precoz los reduce', 1]
+  ],
+  perlas: 'Vasculitis de vaso mediano con predilección coronaria. La mayoría de los casos ocurre en menores de 5 años. Mayor riesgo coronario en menores de 6 meses y mayores de 5 años.\nKawasaki incompleto: considerar en lactante menor de 6 meses con fiebre de 7 días o más y parámetros inflamatorios elevados, aun sin criterios.\nLaboratorio: trombocitosis desde la segunda semana, hipoalbuminemia, hiponatremia, transaminasas elevadas, piuria estéril.\n\nIgIV 2 g/kg EV en 10 a 12 horas. Mecanismo: inmunomodulación. Reduce aneurismas de alrededor de 25% a menos de 5%.\nAspirina (AHA 2017): 80 a 100 o 30 a 50 mg/kg/día cada 6 horas hasta 48 a 72 horas afebril, luego 3 a 5 mg/kg/día una vez al día hasta ecocardiograma normal a las 4 a 6 semanas. Mecanismo: inhibición irreversible de la COX, antiinflamatoria en dosis altas y antiagregante en dosis bajas.\nEcocardiograma al diagnóstico, a las 1 a 2 semanas y a las 4 a 6 semanas.\nPostergar vacunas a virus vivos por 11 meses tras IgIV. Vacunar contra influenza.\nRefractario (fiebre 36 horas tras IgIV): segunda dosis de IgIV, corticoides o infliximab.\n\nContraindicaciones:\nAspirina: influenza o varicela activas (Reye), sangrado activo, alergia a AINE. No combinar con ibuprofeno (antagoniza el efecto antiagregante).\nIgIV: déficit de IgA con anticuerpos anti IgA, sobrecarga de volumen.',
+  notas: 'El apunte decía que Kawasaki es más frecuente entre los 6 y 11 años. La mayoría de los casos ocurre en menores de 5 años.\nAspirina: AHA 2017 acepta tanto 80 a 100 como 30 a 50 mg/kg/día en fase aguda.'
+});
+
+addCase({
+  id: 'ped-03', n: 3, esp: 'Pediatría', tipo: 'construida', escenario: 'Estación de imágenes',
+  titulo: 'Dermatología pediátrica: identificación de lesiones',
+  vineta: 'Se le presentan 4 imágenes de lesiones cutáneas en niños. Para cada una indique el diagnóstico, si requiere hospitalización o manejo ambulatorio, si es de notificación obligatoria y si requiere interconsulta.',
+  tareas: ['Diagnostique cada imagen.', 'Defina hospitalización o manejo ambulatorio.', 'Indique notificación e interconsulta cuando corresponda.', 'Mencione qué preguntaría en la historia frente a un exantema.'],
+  cx: 'Imagen 1: escolar febril con lesiones purpúricas y equimóticas confluentes en extremidades inferiores que no blanquean a la presión.\nImagen 2: pápulas eritematosas y surcos lineales en espacios interdigitales y muñecas, con lesiones de rascado.\nImagen 3: eritema rojo brillante en la zona del pañal con compromiso de pliegues y pápulas satélites.\nImagen 4: lesiones erosivas con costras amarillo miel alrededor de la boca.',
+  items: [
+    ['A', 'Historia del exantema: edad, orden de aparición, síntomas asociados, prurito, contactos, viajes, fármacos', 1],
+    ['D', 'Imagen 1: meningococcemia (púrpura fulminante)', 1, true],
+    ['M', 'Imagen 1: hospitalizar en UPC, ATB inmediato, notificación inmediata y profilaxis a contactos', 1.5, true],
+    ['D', 'Imagen 2: escabiosis', 1],
+    ['M', 'Imagen 2: ambulatorio con permetrina 5% y tratamiento simultáneo de convivientes', 1],
+    ['D', 'Imagen 3: dermatitis del pañal con sobreinfección por Candida', 1],
+    ['M', 'Imagen 3: ambulatorio con pasta de barrera y antifúngico tópico', 1],
+    ['D', 'Imagen 4: impétigo', 1],
+    ['M', 'Imagen 4: ambulatorio con mupirocina tópica, ATB oral si es extenso', 1]
+  ],
+  perlas: 'Meningococcemia: ceftriaxona 100 mg/kg/día EV (máximo 4 g). Mecanismo: cefalosporina de tercera generación, inhibe la síntesis de pared. Bolos de cristaloides de 10 a 20 ml/kg reevaluando. Hemocultivos sin retrasar el ATB. Punción lumbar solo cuando esté estable.\nProfilaxis de contactos: rifampicina 10 mg/kg cada 12 horas por 2 días (máximo 600 mg, 5 mg/kg en menores de 1 mes), o ceftriaxona IM dosis única (125 mg en menores de 15 años, 250 mg en mayores), o ciprofloxacino 500 mg dosis única en adultos.\n\nEscabiosis: permetrina 5% crema desde el cuello a los pies (incluir cuero cabelludo y cara en lactantes), dejar 8 a 12 horas, repetir a los 7 días. Mecanismo: bloquea los canales de sodio del ácaro. Lavar ropa en agua caliente o guardarla en bolsa cerrada 72 horas. El prurito post escabiótico puede durar 2 a 4 semanas.\n\nDermatitis del pañal: la irritativa respeta los pliegues. La candidiásica los compromete y tiene lesiones satélites. Pasta de óxido de zinc más nistatina o clotrimazol tópico 2 a 3 veces al día por 7 a 14 días. Cambio frecuente de pañal, aseo con agua, secar bien.\n\nImpétigo: mupirocina 2% 3 veces al día por 5 días. Extenso o buloso: cefadroxilo 30 mg/kg/día VO cada 12 horas por 7 días. Mecanismo de la mupirocina: inhibe la isoleucil ARNt sintetasa bacteriana.\n\nContraindicaciones:\nPermetrina: menores de 2 meses (usar alternativas como vaselina azufrada).\nCeftriaxona: RN con hiperbilirrubinemia o que recibe calcio EV.\nRifampicina: embarazo (preferir ceftriaxona), reduce eficacia de anticonceptivos, tiñe secreciones de naranja.\nCefadroxilo: alergia grave a betalactámicos.',
+  notas: 'El apunte decía permetrina "1 comprimido cada 15 kg". La permetrina es tópica (crema o loción), no comprimido.\nEl apunte menciona un esquema MINSAL "3 4 3" que no pude verificar, por eso no se incluyó.'
+});
+
+addCase({
+  id: 'ped-04', n: 4, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Escarlatina: diagnóstico y consejería',
+  vineta: 'Madre consulta por su hijo de 6 años, 22 kg, con fiebre de 39 °C, dolor de garganta, vómitos y desde ayer un exantema áspero en todo el cuerpo.',
+  sv: { Temp: '39 °C', FC: '120 lpm' },
+  tareas: ['Realice anamnesis y plantee el diagnóstico.', 'Indique estudio y tratamiento.', 'Explique contagio, complicaciones y signos de alarma.'],
+  ef: 'Faringe eritematosa con exudado amigdalino. Lengua aframbuesada. Exantema micropapular "en piel de gallina", más intenso en pliegues (líneas de Pastia), palidez peribucal. Respeta palmas y plantas.',
+  cx: 'Test rápido de antígeno estreptocócico positivo.',
+  items: [
+    ['A', 'Pregunta contactos con faringitis o escarlatina y alergia a penicilina', 1],
+    ['D', 'Escarlatina por estreptococo beta hemolítico grupo A', 1.5, true],
+    ['M', 'Confirma con test rápido o cultivo faríngeo', 1],
+    ['M', 'Amoxicilina 50 mg/kg/día (máximo 1 g) por 10 días, o penicilina benzatina IM dosis única', 2, true],
+    ['M', 'Alternativa en alergia a penicilina', 1],
+    ['M', 'Paracetamol para fiebre y dolor', 0.5],
+    ['M', 'Contagio por gotitas, deja de contagiar 12 a 24 horas después de iniciar el ATB, puede volver al colegio entonces', 1],
+    ['M', 'Completar 10 días aunque mejore, para prevenir fiebre reumática', 1],
+    ['M', 'Explica la descamación posterior (palmas y plantas al final)', 0.5],
+    ['M', 'Signos de alarma: fiebre persistente a las 48 a 72 h, dificultad para tragar o abrir la boca, orina oscura o edema, dolor articular', 1]
+  ],
+  perlas: 'Clínica: fiebre, odinofagia, vómitos y a las 12 a 48 horas exantema micropapular áspero que se generaliza en 24 horas, más intenso en pliegues, con palidez peribucal y lengua aframbuesada. Descamación posterior.\nComplicaciones supurativas: absceso periamigdalino, adenitis, otitis, sinusitis. No supurativas: fiebre reumática y GNAPE.\nEscarlatina "quirúrgica" con puerta de entrada cutánea: hospitalizar y cubrir con penicilina más clindamicina.\n\nAmoxicilina 50 mg/kg/día VO en 1 o 2 dosis por 10 días (máximo 1 g/día). Mecanismo: betalactámico que inhibe la síntesis de pared.\nPenicilina benzatina IM dosis única: 600.000 UI si pesa menos de 27 kg, 1.200.000 UI si pesa 27 kg o más. Para este niño de 22 kg corresponden 600.000 UI.\nAlergia no anafiláctica: cefadroxilo 30 mg/kg/día por 10 días. Alergia anafiláctica: azitromicina 12 mg/kg/día por 5 días o clindamicina 20 mg/kg/día en 3 dosis por 10 días.\n\nContraindicaciones:\nAmoxicilina y penicilina benzatina: alergia a penicilinas.\nCefadroxilo: anafilaxia a betalactámicos.\nAzitromicina: QT largo, alergia a macrólidos.',
+  notas: 'Checklist construido desde el apunte. El apunte indicaba penicilina benzatina 1.200.000 U en mayores de 30 kg. El corte habitual es 27 kg, con 600.000 UI bajo ese peso.\nEl apunte listaba "escarlatina" como complicación de sí misma, se eliminó.'
+});
+
+addCase({
+  id: 'ped-05', n: 5, esp: 'Pediatría', tipo: 'oficial', escenario: 'Estación de imágenes',
+  titulo: 'Desarrollo psicomotor: verdadero o falso',
+  vineta: 'Se le presentan fotos de niños con una edad asignada. Indique si la edad es verdadera o falsa y, si es falsa, corrija la edad.\n\n1. Mirarse las manos: 6 meses\n2. Tomarse los pies: 12 meses\n3. Sentarse sin apoyo: 8 meses\n4. Apuntar con el índice: 11 meses\n5. Chutear la pelota: 3 años\n6. Comer solo: 18 meses',
+  tareas: ['Indique V o F para cada afirmación.', 'Corrija la edad de las afirmaciones falsas.'],
+  items: [
+    ['D', 'Mirarse las manos a los 6 meses: FALSO', 1],
+    ['D', 'Edad correcta para mirarse las manos: 3 a 4 meses', 1],
+    ['D', 'Tomarse los pies a los 12 meses: FALSO', 1],
+    ['D', 'Edad correcta para tomarse los pies: 5 a 7 meses', 1],
+    ['D', 'Sentarse sin apoyo a los 8 meses: VERDADERO', 1],
+    ['D', 'Apuntar con el índice a los 11 meses: VERDADERO', 1],
+    ['D', 'Chutear la pelota a los 3 años: FALSO', 1],
+    ['D', 'Edad correcta para chutear la pelota: 18 a 30 meses', 1],
+    ['D', 'Comer solo a los 18 meses: FALSO', 1],
+    ['D', 'Edad correcta para comer solo: 24 a 30 meses', 1]
+  ],
+  perlas: 'Hitos clave:\n2 meses: sonrisa social, cabeza en línea con el tronco en suspensión ventral, junta manos en línea media.\n3 a 4 meses: sostén cefálico, se mira las manos, lleva manos a la boca, se apoya en antebrazos en prono.\n5 a 7 meses: se toma los pies, transfiere objetos de mano a mano, reconoce extraños.\n6 a 8 meses: sedestación sin apoyo, pinza radio palmar, busca objeto escondido.\n10 meses: gatea. 11 meses: apunta con el índice.\n12 a 18 meses: marcha independiente, torre de 2 cubos al año.\n18 meses: corre, torre de 4 cubos, rayas.\n2 años: torre de 6 cubos, chutea pelota, frases de 2 palabras.\n3 años: triciclo, copia círculo.\n4 años: copia cuadrado, va solo al baño.\n5 años: copia triángulo, se viste solo.\n\nEn prematuros evaluar con edad corregida hasta los 2 años.',
+  notas: 'Pauta oficial: 1 punto por cada V o F correcto y 1 punto por cada edad corregida.'
+});
+
+addCase({
+  id: 'ped-06', n: 6, esp: 'Pediatría', tipo: 'oficial', escenario: 'Clínica de lactancia',
+  titulo: 'Clínica de lactancia: corrección de técnica',
+  vineta: 'La Sra. Carmen, madre de un RN de 7 días, fue derivada por la enfermera a la Clínica de Lactancia porque su hijo pesa 10 g menos que al alta. RNT AEG sin antecedentes perinatales patológicos, parto normal, examen físico normal. Primer hijo. Recibe pecho exclusivo.\nObserve la técnica de amamantamiento del binomio que tiene frente a usted y entregue las indicaciones de manejo y seguimiento. Demuestre su conducta como lo haría en la realidad.',
+  tareas: ['Observe y corrija la técnica de amamantamiento.', 'Entregue indicaciones de alimentación.', 'Defina el seguimiento.'],
+  an: 'Lo alimenta solo 7 veces al día. Hace 1 deposición al día y moja 4 pañales al día. Refiere dolor al amamantar.',
+  ef: 'Observación: el niño está muy arropado, con chal. La madre se sienta inclinada hacia adelante, sin apoyar la espalda, con dolor e incomodidad. Ubica al niño en decúbito dorsal sobre su brazo, separado al menos 10 cm, con las extremidades mirando al frente. Sujeta la mama con los dedos en tijera e intenta introducir solo el pezón en la boca del niño.',
+  items: [
+    ['C', 'Saluda a la madre y se presenta', 2],
+    ['M', 'Indica sacarle ropa al niño (el sobreabrigo induce sueño)', 1],
+    ['M', 'Indica a la madre sentarse cómoda con la espalda apoyada', 1],
+    ['M', 'Indica sostener al niño sobre el brazo en decúbito lateral, abdomen con abdomen', 1, true],
+    ['M', 'Indica sostener la mama con los dedos por detrás de la areola (mano en C)', 1],
+    ['M', 'Indica que el pezón toque la boca del niño para introducir hasta la areola', 1, true],
+    ['M', 'Refiere que el pezón no debe salir deformado', 1],
+    ['C', 'Pregunta a la madre si le duele o cómo se siente ahora', 2],
+    ['M', 'Recomienda aumentar el número de mamadas', 2, true],
+    ['M', 'Indica vaciar bien una mama antes de dar la otra', 1],
+    ['C', 'Pregunta a la madre por dudas', 1],
+    ['M', 'Cita a control en menos de 4 días', 2, true],
+    ['C', 'Paciente simulado: fue amable', 1],
+    ['C', 'Paciente simulado: la trató con respeto', 1],
+    ['C', 'Paciente simulado: se sintió comprendida', 1],
+    ['C', 'Paciente simulado: le creyó, le dio confianza', 1]
+  ],
+  perlas: 'Baja de peso fisiológica: hasta 7 a 10% en los primeros días. El RN debe recuperar el peso de nacimiento a los 10 a 14 días. Un RN de 7 días que no sube desde el alta tiene transferencia insuficiente.\nTransferencia adecuada desde el día 5: 6 o más pañales mojados y 3 a 4 deposiciones amarillas al día. Este RN (4 pañales y 1 deposición) no la cumple.\nFrecuencia: 8 a 12 mamadas al día, libre demanda, no más de 3 horas entre mamadas en este caso.\nAcople correcto: boca muy abierta, labios evertidos, mentón tocando la mama, más areola visible arriba que abajo, mejillas redondas, deglución audible, sin dolor.\nLa leche del final de la mamada tiene más grasa y calorías.\nSi se pone muy amarillo, decaído o moja menos pañales, consultar antes.',
+  notas: 'Pauta oficial de 16 puntos más 4 puntos del paciente simulado.'
+});
+
+addCase({
+  id: 'ped-07', n: 7, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Lactancia en madre que vuelve a trabajar',
+  vineta: 'Madre de un lactante de 2 meses con lactancia materna exclusiva consulta porque pronto volverá a trabajar y piensa pasarlo a fórmula.',
+  tareas: ['Salude, preséntese y explore la situación.', 'Promueva la continuidad de la lactancia.', 'Enseñe extracción, almacenamiento y descongelación de la leche.'],
+  an: 'Trabaja en un supermercado, jornada de 9 a 18 horas, a 30 minutos de casa. Dejará al niño con su madre. Tiene refrigerador de 2 puertas.',
+  items: [
+    ['C', 'Saluda, se presenta y usa lenguaje sencillo y acogedor', 1],
+    ['A', 'Indaga la forma actual de alimentación', 0.5],
+    ['A', 'Indaga condiciones sociales: vivienda, refrigerador, con quién quedará el niño', 1],
+    ['A', 'Indaga trabajo: tipo, horario y distancia', 0.5],
+    ['M', 'Menciona al menos 3 ventajas de la lactancia (inmunológica, nutricional, apego, desarrollo, económica, salud materna)', 1],
+    ['M', 'Plantea mantener lactancia exclusiva con leche extraída', 1, true],
+    ['M', 'Explica la extracción manual: manos limpias, ambiente tranquilo, masaje, compresión rítmica detrás de la areola', 1],
+    ['M', 'Menciona la existencia de extractores', 0.5],
+    ['M', 'Envase limpio de vidrio o plástico apto con tapa, rotulado con fecha', 0.5],
+    ['M', 'Duración: hasta 4 horas a temperatura ambiente, hasta 4 días en refrigerador al fondo (no en la puerta)', 1, true],
+    ['M', 'Congelador: idealmente dentro de 6 meses, hasta 12 aceptable', 1],
+    ['M', 'Descongelar en refrigerador la noche anterior o a baño maría, nunca en microondas, no recongelar', 1],
+    ['M', 'Agitar suavemente antes de dar', 0.5],
+    ['M', 'Derecho a alimentar o extraerse leche durante la jornada laboral', 1],
+    ['C', 'Pregunta si tiene dudas', 0.5]
+  ],
+  perlas: 'La leche se separa al reposar y la grasa sube, por eso se agita suavemente. Puede cambiar de color según la dieta.\nLa leche descongelada se usa dentro de 24 horas y no se vuelve a congelar.\nEmpezar a extraer y congelar 2 a 3 semanas antes de volver al trabajo. Ofrecer la leche con vaso o cuchara para no interferir con el pecho.\nChile: la madre trabajadora tiene derecho a 1 hora diaria para alimentar a su hijo menor de 2 años (Código del Trabajo).\n\nContraindicaciones de lactancia: VIH materno (en Chile), HTLV 1 y 2, galactosemia clásica del niño. TBC activa bacilífera no tratada: separar hasta 2 semanas de tratamiento, puede recibir leche extraída. Temporales: radioisótopos, quimioterapia, drogas de abuso. En fenilcetonuria la lactancia es parcial junto a fórmula especial, no se contraindica.',
+  notas: 'Tiempos de almacenamiento actualizados según CDC: 4 horas ambiente, 4 días refrigerador, 6 a 12 meses congelador. El apunte daba 6 a 8 horas ambiente, 3 días refrigerador, 14 días en congelador de 1 puerta y 3 meses en uno de 2 puertas. No encontré el manual MINSAL vigente para contrastar, puede que tu pauta use esos tiempos.\nSe corrigió que fenilcetonuria no contraindica la lactancia en forma absoluta.'
+});
+
+addCase({
+  id: 'ped-08', n: 8, esp: 'Pediatría', tipo: 'oficial', escenario: 'Estación de imágenes',
+  titulo: 'Radiografías pediátricas',
+  vineta: 'Se le presentan 4 imágenes. Para cada una indique el tipo de examen y el diagnóstico.',
+  tareas: ['Identifique el tipo de examen de cada imagen.', 'Plantee el diagnóstico de cada imagen.'],
+  cx: 'Imagen I: radiografía de tórax AP de lactante. Campos pulmonares bien aireados y simétricos, silueta cardiaca y mediastino de tamaño normal, ángulos costofrénicos libres, diafragmas bien definidos.\nImagen II: radiografía AP de pelvis. Núcleos de osificación femorales presentes y simétricos, línea de Shenton conservada, metáfisis bajo la línea de Hilgenreiner y medial a la línea de Perkins.\nImagen III: estudio con contraste instilado en la vejiga por sonda, durante la micción. El contraste asciende por ambos uréteres hasta pelvis y cálices dilatados.\nImagen IV: radiografía simple de abdomen de pie. Asas de intestino delgado dilatadas con múltiples niveles hidroaéreos y escaso aire distal.',
+  items: [
+    ['D', 'Imagen I: radiografía de tórax AP', 1],
+    ['D', 'Imagen I: normal', 2],
+    ['D', 'Imagen II: radiografía AP de pelvis', 1],
+    ['D', 'Imagen II: normal', 1],
+    ['D', 'Imagen III: uretrocistografía miccional', 1],
+    ['D', 'Imagen III: reflujo vesicoureteral', 2, true],
+    ['D', 'Imagen IV: radiografía simple de abdomen AP', 1],
+    ['D', 'Imagen IV: obstrucción intestinal o íleo con niveles hidroaéreos', 1, true]
+  ],
+  perlas: 'Lectura sistemática de la radiografía de tórax: proyección y técnica (penetración, inspiración, rotación), partes blandas, óseo, corazón, mediastino, pulmones, pleuras y ángulos costofrénicos, diafragma.\n\nOtras imágenes que han aparecido:\nNeumopericardio: halo negro que rodea completamente al corazón.\nHiperinsuflación: aplanamiento diafragmático, más de 8 a 9 arcos costales posteriores, aumento del espacio retroesternal.\nHernia diafragmática: asas con aire en el hemitórax (generalmente izquierdo) y desplazamiento del mediastino.\nDisplasia o luxación de cadera: metáfisis por sobre la línea de Hilgenreiner o lateral a Perkins, ruptura de la línea de Shenton, índice acetabular aumentado.\nDoble burbuja: atresia duodenal, asociada a trisomía 21.\nVólvulo: vómitos biliosos, emergencia quirúrgica, el estudio de elección es el tránsito intestinal alto contrastado.\nHidrocefalia: dilatación ventricular en TAC.\n\nObstrucción intestinal: régimen cero, sonda nasogástrica, hidratación EV, corrección hidroelectrolítica y cirugía. En RN pensar en Hirschsprung, íleo meconial (fibrosis quística), malrotación y enterocolitis necrotizante.\nReflujo vesicoureteral: grados I a V. Manejo según grado, edad y presencia de ITU.',
+  notas: 'Las imágenes no se incluyen y se describen en texto.'
+});
+
+addCase({
+  id: 'ped-09', n: 9, esp: 'Pediatría', tipo: 'oficial', escenario: 'Consulta APS',
+  titulo: 'Edad corregida y diagnóstico nutricional',
+  vineta: 'Carolina es una lactante de 4 meses y 15 días que acude con su madre a supervisión de salud.\nAntecedentes perinatales: embarazo de 34 semanas con colestasia intrahepática, cesárea.\nAntropometría de nacimiento: peso 2000 g, talla 43 cm.\nAntropometría actual: peso 5200 g, talla 54 cm.',
+  tareas: ['Corrija la edad.', 'Ubique peso y talla en las curvas P/E, T/E y P/T.', 'Plantee los diagnósticos nutricionales.'],
+  items: [
+    ['D', 'Corrige la edad cronológica a 40 semanas: edad corregida 3 meses', 2, true],
+    ['D', 'Ubica el peso en P/E: 5200 g a los 3 meses, cercano a la mediana', 1],
+    ['D', 'Ubica la talla en T/E: 54 cm a los 3 meses, bajo menos 2 DE', 1],
+    ['D', 'Ubica P/T: 5200 g con 54 cm, sobre más 2 DE', 1],
+    ['D', 'Diagnóstico P/E: eutrofia', 1],
+    ['D', 'Diagnóstico P/T: obesidad', 2, true],
+    ['D', 'Diagnóstico T/E: talla baja', 2]
+  ],
+  perlas: 'Edad corregida = edad cronológica menos (40 menos EG al nacer) semanas. Aquí 34 semanas implica 6 semanas de prematurez, y 4 meses 15 días menos 6 semanas da 3 meses. Se usa hasta los 2 años en prematuros (hasta los 3 años en menores de 32 semanas según algunas normas).\n\nP/E se usa en menores de 1 año para diagnosticar desnutrición (menos 2 DE o menos).\nP/T se usa desde el mes hasta los 6 años:\nEutrofia entre menos 0,9 y más 0,9 DE.\nRiesgo de desnutrir entre menos 1 y menos 1,9.\nDesnutrición menos 2 o menos.\nSobrepeso entre más 1 y más 1,9.\nObesidad más 2 o más.\nT/E normal entre menos 1,9 y más 1,9 DE. Talla baja menos 2 DE o menos.\nIMC/E se usa desde los 6 años.',
+  notas: 'Pauta oficial de 10 puntos.'
+});
+
+addCase({
+  id: 'ped-10', n: 10, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Supervisión de salud del lactante de 4 meses: indicaciones',
+  vineta: 'Lactante de 4 meses, sano, en supervisión de salud con su madre. Examen físico normal, crecimiento y desarrollo adecuados. Recibe lactancia materna exclusiva.',
+  tareas: ['Realice una anamnesis breve de supervisión.', 'Entregue todas las indicaciones de supervisión de salud a la madre.'],
+  items: [
+    ['A', 'Pregunta morbilidad, alimentación, hábitos (sueño, deposiciones, diuresis), desarrollo y vacunas', 1],
+    ['M', 'Mantener lactancia materna exclusiva a libre demanda hasta los 6 meses, sin agua, jugos ni otros alimentos', 1.5, true],
+    ['M', 'Vitamina D 400 UI al día', 1],
+    ['M', 'Suplementación de hierro según norma vigente', 0.5],
+    ['M', 'Vacunas de los 4 meses: hexavalente, neumocócica conjugada y meningocócica B', 1, true],
+    ['M', 'Estimulación: boca abajo despierto, hablarle, cantarle, leerle, sin pantallas', 1],
+    ['M', 'Sueño seguro: boca arriba, en cuna propia, sin almohadas ni peluches, sin humo de tabaco', 1, true],
+    ['M', 'Prevención de accidentes: silla de auto en asiento trasero mirando hacia atrás, no dejarlo solo en superficies altas, no andador, cuidado con líquidos calientes', 1],
+    ['M', 'Paracetamol SOS por fiebre o dolor 15 mg/kg/dosis, máximo cada 6 horas', 0.5],
+    ['M', 'Consultar si: fiebre persistente o con decaimiento, rechazo alimentario, vómitos repetidos, dificultad respiratoria, decaimiento o menos pañales mojados', 1],
+    ['M', 'Próximo control en 1 mes', 0.5],
+    ['C', 'Entrega indicaciones por escrito y pregunta dudas', 0.5]
+  ],
+  perlas: 'PNI Chile 2026:\nRN: BCG y hepatitis B.\n2 y 4 meses: hexavalente, neumocócica conjugada 20 valente (desde septiembre 2026, reemplazó a la 13 valente) y meningocócica B.\n6 meses: hexavalente. Neumocócica solo en prematuros.\n12 meses: tres vírica, meningocócica conjugada tetravalente, refuerzo neumocócico.\n18 meses: hexavalente, hepatitis A, varicela, refuerzo meningocócica B.\n36 meses: tres vírica y varicela.\n1° básico: dTpa. 4° básico: VPH nonavalente dosis única. 8° básico: dTpa.\nEmbarazadas desde 28 semanas: dTpa.\nNirsevimab para RN y lactantes en su primera temporada de VRS.\n\nVacunas extra PNI: rotavirus (Rotarix 2 dosis, primera dosis antes de las 15 semanas), influenza desde los 6 meses (2 dosis separadas por 4 semanas la primera vez en menores de 9 años).\n\nAlimentación complementaria desde los 6 meses, alimentos alergénicos sin retrasarlos.\nControles: mensuales hasta los 6 meses, luego más espaciados.\nRx de pelvis a los 3 meses para displasia de cadera (ecografía antes si hay factores de riesgo).\n\nParacetamol: mecanismo inhibición central de la COX. Contraindicaciones: insuficiencia hepática, hipersensibilidad.',
+  notas: 'Calendario PNI actualizado a 2026 (ChileAtiende y MINSAL): ya no hay polio oral (la hexavalente incluye polio inactivado), la neumocócica es PCV20 desde el 1 de septiembre de 2026 con esquema 2, 4 y 12 meses, y se agregó meningocócica B a los 2, 4 y 18 meses.\nEl apunte sugería jugos desde los 4 meses. Se corrigió a lactancia exclusiva hasta los 6 meses.\nHierro: la AAP recomienda 1 mg/kg/día desde los 4 meses en lactancia exclusiva. No verifiqué el esquema MINSAL vigente, revísalo con tu norma.'
+});
+
+addCase({
+  id: 'ped-11', n: 11, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Supervisión de salud del adolescente (HEEADSSS)',
+  vineta: 'Madre trae a su hija de 14 años a control porque "come mal y anda rara". Usted solo debe realizar la anamnesis.',
+  tareas: ['Realice la anamnesis completa del adolescente.'],
+  an: 'Madre: la nota más callada, se encierra en su pieza, se salta comidas. Adolescente a solas: se siente gorda, hace dieta estricta y ejercicio a diario, bajó de rendimiento, discute en casa. Niega consumo de drogas, consume alcohol ocasionalmente en fiestas. Sin pareja. A veces piensa que sería mejor desaparecer, sin plan.',
+  items: [
+    ['A', 'Entrevista inicial con la madre para conocer el motivo de consulta', 0.5],
+    ['C', 'Explica confidencialidad y sus límites (riesgo para su vida o la de otros)', 1, true],
+    ['A', 'Entrevista a la adolescente a solas', 1, true],
+    ['A', 'Hogar: con quién vive, relación con la familia', 1],
+    ['A', 'Educación: rendimiento, conducta, relaciones con pares, bullying', 1],
+    ['A', 'Alimentación e imagen corporal: dietas, conductas compensatorias, ejercicio excesivo, menstruación', 1, true],
+    ['A', 'Actividades: amigos, deportes, pantallas, sueño', 1],
+    ['A', 'Drogas, alcohol, tabaco y vapeo', 1],
+    ['A', 'Sexualidad: identidad, actividad sexual, protección', 1],
+    ['A', 'Ánimo y suicidio: tristeza, ideación, plan, intentos previos, autolesiones', 1, true],
+    ['A', 'Seguridad: violencia, cinturón o casco, redes sociales', 0.5],
+    ['C', 'Cierre: síntesis, refuerza fortalezas y acuerda qué se compartirá con la madre', 0.5]
+  ],
+  perlas: 'HEEADSSS: Hogar, Educación, Alimentación (Eating), Actividades, Drogas, Sexualidad, Suicidio y ánimo, Seguridad.\nControl de salud anual entre los 10 y 19 años.\nLa ideación suicida se pregunta directamente. Preguntar no aumenta el riesgo. Si hay riesgo, se rompe la confidencialidad y se activa red.\nSospecha de trastorno de conducta alimentaria: SCOFF. Signos de gravedad: bradicardia, hipotensión ortostática, hipotermia, alteraciones hidroelectrolíticas, IMC muy bajo. Derivar a salud mental.'
+});
+
+addCase({
+  id: 'ped-12', n: 12, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Preparación de mamadera a los 8 meses',
+  vineta: 'Madre de un lactante de 8 meses que recibe fórmula le pide que le enseñe a preparar la mamadera. Demuestre la técnica e indique la alimentación que le corresponde.',
+  tareas: ['Demuestre la preparación de la mamadera.', 'Indique cantidades y alimentación para la edad.'],
+  items: [
+    ['M', 'Pregunta qué leche usa (fórmula o leche Purita Fortificada)', 0.5],
+    ['M', 'Lavado de manos', 1, true],
+    ['M', 'Mamadera y chupete limpios', 0.5],
+    ['M', 'Usa agua hervida y entibiada', 1],
+    ['M', 'Primero pone parte del agua, luego las medidas rasas de leche y cereal, y completa con agua', 1],
+    ['M', 'Dilución correcta: leche 7,5% más cereal 3 a 5% (para 200 ml: 3 medidas de leche y 3 de cereal)', 1, true],
+    ['M', 'No agrega azúcar', 0.5],
+    ['M', 'Verifica la temperatura en el dorso de la muñeca', 0.5],
+    ['M', 'Desecha lo que sobra', 0.5],
+    ['M', 'A los 8 meses: 2 comidas con postre y 3 leches de 200 ml', 1],
+    ['M', 'Agua sin azúcar para la sed, comidas sin sal', 0.5]
+  ],
+  perlas: 'Diluciones habituales (medida de leche 5 g, medida de cereal 3 g):\nMenor de 6 meses: leche 7,5% más maltodextrina o aceite según indicación.\n6 a 12 meses: leche 7,5% más cereal 3 a 5%.\n12 a 18 meses: leche 10% más cereal 3 a 5%.\nFórmulas comerciales: seguir la medida del envase.\n\nIncorporación de alimentos: almuerzo desde los 6 meses, cena desde los 8 meses. Pescado, legumbres y huevo sin retrasar, la evidencia actual no apoya diferir alergénicos.\nNo miel antes de los 12 meses (botulismo).',
+  notas: 'El apunte incluía azúcar en la preparación. Se eliminó porque no se recomienda agregar azúcar.\nEl apunte retrasaba huevo a los 9 meses y legumbres a los 8. La recomendación actual es no retrasar alergénicos.'
+});
+
+addCase({
+  id: 'ped-13', n: 13, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Hepatitis A y solicitud de licencia',
+  vineta: 'Madre consulta con su hija de 7 años con hepatitis A confirmada por clínica y laboratorio. No tiene familia en Santiago ni con quién dejarla. Le pide licencia médica para cuidarla y dice que su Isapre no cubriría una hospitalización.',
+  tareas: ['Evalúe a la paciente y busque signos de gravedad.', 'Responda la solicitud de licencia.', 'Entregue indicaciones de manejo, contagio y contactos.'],
+  an: 'Ictericia hace 3 días, orina oscura, náuseas, inapetencia. Sin vómitos profusos, sin somnolencia ni cambios de conducta, sin sangrados. Hermano de 4 años sano, sin vacuna de hepatitis A.',
+  items: [
+    ['A', 'Busca signos de gravedad: vómitos profusos, compromiso de conciencia, alteración del sueño, sangrado', 1.5, true],
+    ['A', 'Pregunta por contactos en casa y colegio y vacunación previa', 1],
+    ['M', 'Solicita perfil hepático y tiempo de protrombina', 1, true],
+    ['C', 'Explica con empatía que no corresponde licencia en esta situación', 1],
+    ['M', 'Ofrece alternativa: evaluar hospitalización por razón social y apoyo de asistente social', 1],
+    ['M', 'Reposo relativo, alimentación a tolerancia, evitar fármacos hepatotóxicos y automedicación', 1],
+    ['M', 'Lavado de manos estricto, no compartir utensilios, no asistir al colegio hasta 7 días desde el inicio de la ictericia', 1],
+    ['M', 'Contactos: vacuna de hepatitis A dentro de 2 semanas desde la exposición', 1],
+    ['M', 'Notificación obligatoria', 0.5],
+    ['M', 'Signos de alarma: vómitos persistentes, somnolencia o confusión, sangrado, aumento de la ictericia', 1]
+  ],
+  perlas: 'Hepatitis A: transmisión fecal oral. Incubación de 15 a 50 días (promedio 28). Contagia más en las 2 semanas previas a la ictericia. En niños pequeños suele ser asintomática.\nHepatitis fulminante (0,1 a 0,2%): sospechar con vómitos profusos, cambios conductuales, alteración del sueño, confusión, protrombina menor de 50%. Derivar a centro con trasplante.\nPost exposición: vacuna en mayores de 12 meses dentro de 14 días. Inmunoglobulina en menores de 12 meses o inmunocomprometidos.\nPNI Chile: hepatitis A a los 18 meses.\nLicencia: la licencia por enfermedad grave de hijo es para menores de 1 año, y la Ley SANNA cubre solo condiciones graves específicas (cáncer, trasplante, fase terminal, accidente grave). Una hepatitis A no complicada en una niña de 7 años no califica.',
+  notas: 'El apunte daba incubación de 14 a 95 días. Se corrigió a 15 a 50 días.\nLa explicación sobre licencia y Ley SANNA es mi lectura de la normativa, no está en el apunte. Verifícala si te la preguntan en detalle.'
+});
+
+addCase({
+  id: 'ped-14', n: 14, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Solicitud de certificado de exención de educación física',
+  vineta: 'Madre solicita un certificado para eximir de educación física a su hija de 11 años porque "es gorda y le va mal". La niña no tiene contraindicaciones médicas para la actividad física.',
+  tareas: ['Responda la solicitud.', 'Realice anamnesis dirigida.', 'Proponga un plan.'],
+  an: 'IMC sobre p95. Pasa 5 horas diarias frente a pantallas. Bebidas azucaradas a diario. Le da vergüenza cambiarse frente a sus compañeras y la molestan.',
+  items: [
+    ['C', 'Saluda y se presenta', 0.5],
+    ['C', 'Explica con empatía que no puede certificar algo que no es real, no es ético', 1.5, true],
+    ['A', 'Anamnesis de alimentación, actividad física, tiempo sedentario y pantallas', 1],
+    ['A', 'Antecedentes mórbidos y familiares, evolución del peso', 1],
+    ['A', 'Busca el problema de fondo: barreras, burlas, vergüenza, bullying', 1.5, true],
+    ['M', 'Explica beneficios de la actividad física: físicos, psicológicos y sociales', 1],
+    ['M', 'Explica complicaciones de la obesidad: psicosociales, ortopédicas, metabólicas, SAOS, pubertad adelantada', 1],
+    ['M', 'Plan en 3 pilares: actividad física 60 minutos diarios, alimentación saludable y cambios conductuales familiares', 1],
+    ['M', 'Propone metas individuales y conversar con el colegio, actividad que le guste', 1],
+    ['M', 'Solicita exámenes: perfil lipídico, glicemia (insulinemia o PTGO según caso), pruebas hepáticas, TSH', 1]
+  ],
+  perlas: 'Obesidad en mayores de 6 años: IMC/E en p95 o más (más 2 DE).\nEl manejo es familiar y conductual, sin culpar a la niña. Evaluar si existe bullying, que es la barrera más frecuente para la educación física.\nComorbilidades a buscar: dislipidemia, resistencia a la insulina, hígado graso, HTA (medir PA), SAOS, epifisiolisis, tibia vara.'
+});
+
+addCase({
+  id: 'ped-15', n: 15, esp: 'Pediatría', tipo: 'construida', escenario: 'Estación de imágenes',
+  titulo: 'Estadios de Tanner',
+  vineta: 'Se le presentan fotos de desarrollo puberal. Clasifique cada una según Tanner.',
+  tareas: ['Clasifique cada imagen.', 'Defina pubertad precoz y retraso puberal.'],
+  cx: 'Foto A: botón mamario subareolar con leve elevación de mama y areola.\nFoto B: areola y pezón forman un segundo montículo sobre el contorno de la mama.\nFoto C: vello púbico escaso, largo, liso y poco pigmentado en labios mayores.\nFoto D: vello rizado y pigmentado que cubre todo el pubis, sin extenderse a los muslos.\nFoto E: genitales masculinos con testículos de 12 ml, pene aumentado en longitud y vello rizado sobre el pubis.',
+  items: [
+    ['D', 'Foto A: mama Tanner II (telarquia)', 1],
+    ['D', 'Foto B: mama Tanner IV', 1],
+    ['D', 'Foto C: vello púbico Tanner II', 1],
+    ['D', 'Foto D: vello púbico Tanner IV', 1],
+    ['D', 'Foto E: genital Tanner III', 1],
+    ['D', 'Inicio puberal masculino: volumen testicular de 4 ml o eje mayor de 2,5 cm', 1],
+    ['D', 'Pubertad precoz: telarquia antes de los 8 años en niñas o testículos de 4 ml antes de los 9 en niños', 1, true],
+    ['D', 'Retraso puberal: sin telarquia a los 13 años en niñas o sin crecimiento testicular a los 14 en niños', 1]
+  ],
+  perlas: 'Mama: I sin desarrollo. II botón mamario. III crecimiento de mama y areola sin separación de contornos. IV areola y pezón forman un segundo montículo. V contorno adulto, la areola vuelve al plano de la mama.\nVello púbico: I sin vello. II escaso y liso en labios mayores o base del pene. III oscuro y rizado sobre el pubis. IV tipo adulto sin llegar a muslos. V se extiende a la cara interna de los muslos.\nGenital masculino: I testículos menores de 4 ml. II testículos de 4 ml, escroto se enrojece. III pene crece en longitud, testículos alrededor de 12 ml. IV pene crece en diámetro y glande. V adulto.\nEn niñas el estirón ocurre en Tanner II a III y la menarquia en IV. En niños el estirón es en Tanner III a IV.'
+});
+
+// ================== PEDIATRÍA (parte 2) ==================
+addCase({
+  id: 'ped-16', n: 16, esp: 'Pediatría', tipo: 'construida', escenario: 'Estación de imágenes',
+  titulo: 'Otoscopía: diagnóstico y manejo',
+  vineta: 'Se le presentan 5 imágenes otoscópicas. Para cada una indique diagnóstico y manejo.',
+  tareas: ['Diagnostique cada imagen.', 'Indique el manejo de cada una.'],
+  cx: 'Imagen 1: membrana gris perlada, translúcida, con triángulo luminoso y mango del martillo visibles.\nImagen 2: membrana abombada, eritematosa y opaca, sin triángulo luminoso, en niño febril con otalgia.\nImagen 3: membrana de color ámbar con burbujas y nivel líquido detrás, sin abombamiento ni signos inflamatorios, en niño sin dolor.\nImagen 4: perforación timpánica central con otorrea purulenta de mal olor e hipoacusia de larga data.\nImagen 5: conducto auditivo externo con detritus blanquecinos y puntos negros, aspecto algodonoso con hifas, en paciente con prurito.',
+  items: [
+    ['D', 'Imagen 1: otoscopía normal', 1],
+    ['D', 'Imagen 2: otitis media aguda', 1, true],
+    ['M', 'Imagen 2: amoxicilina 80 a 90 mg/kg/día cada 12 horas más analgesia', 1, true],
+    ['D', 'Imagen 3: otitis media con efusión', 1],
+    ['M', 'Imagen 3: observación 3 meses, audiometría e impedanciometría, colleras si persiste con hipoacusia', 1],
+    ['D', 'Imagen 4: otitis media crónica supurada (perforación)', 1],
+    ['M', 'Imagen 4: derivar a ORL, gotas óticas de ciprofloxacino, proteger de agua, timpanoplastía electiva', 1],
+    ['D', 'Imagen 5: otomicosis', 1],
+    ['M', 'Imagen 5: aseo del conducto por ORL, antifúngico tópico, evitar humedad', 1],
+    ['M', 'Define hospitalización solo ante complicación (mastoiditis, parálisis facial, meningitis)', 1]
+  ],
+  perlas: 'OMA: duración de amoxicilina 10 días en menores de 2 años, 7 días entre 2 y 5 años, 5 a 7 días desde los 6 años. Si no mejora en 48 a 72 horas: amoxicilina con ácido clavulánico (90 mg/kg/día de amoxicilina). Mecanismo de la amoxicilina: betalactámico que inhibe la síntesis de pared.\nOMA recurrente: 3 episodios en 6 meses o 4 en 12 meses. Evaluar colleras.\nOME: causa más frecuente de hipoacusia de conducción en niños. Sin otalgia ni fiebre.\nOtitis externa: dolor al traccionar el pabellón, edema del conducto. Gotas de ciprofloxacino con o sin corticoide, evitar mojar.\nColesteatoma: retracción o masa blanca nacarada en ático con otorrea crónica, destruye hueso, quirúrgico.\nMiringoesclerosis: placas blancas en la membrana, sin repercusión.\n\nContraindicaciones:\nAmoxicilina: alergia a penicilinas.\nGotas con aminoglicósido (gentamicina): evitar con perforación timpánica por ototoxicidad. El ciprofloxacino tópico es seguro con perforación.',
+  notas: 'Las imágenes se describen en texto. Se agregó que las gotas con aminoglicósidos se evitan si hay perforación, porque el apunte mencionaba gentamicina tópica sin esa advertencia.'
+});
+
+addCase({
+  id: 'ped-17', n: 17, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Anemia ferropriva: indicaciones a la madre',
+  vineta: 'Madre de un lactante de 12 meses y 10 kg viene a buscar el resultado del hemograma del control del año.',
+  tareas: ['Interprete el examen.', 'Entregue las indicaciones de tratamiento y seguimiento a la madre.'],
+  an: 'Toma 3 mamaderas de leche entera de vaca al día (alrededor de 900 ml). Come poca carne.',
+  cx: 'Hb 9,5 g/dl, VCM 68 fl, CHCM 29 g/dl, RDW aumentado, ferritina baja.',
+  items: [
+    ['D', 'Anemia microcítica hipocrómica compatible con ferropenia', 1, true],
+    ['M', 'Explica la causa: exceso de leche de vaca y bajo aporte de hierro', 0.5],
+    ['M', 'Sulfato ferroso 3 mg/kg/día de hierro elemental (30 mg al día en 10 kg)', 1.5, true],
+    ['M', 'Dar alejado de las comidas, con agua o jugo cítrico, nunca con leche', 1],
+    ['M', 'Advierte deposiciones negras, constipación, dolor abdominal y tinción dental (limpiar dientes)', 1],
+    ['M', 'Dieta rica en hierro: carnes, legumbres con vitamina C, evitar té', 1],
+    ['M', 'Limitar la leche de vaca a menos de 500 ml al día', 1],
+    ['M', 'Control de hemoglobina en 4 semanas (debe subir al menos 1 g/dl)', 1],
+    ['M', 'Mantener el hierro 3 meses después de normalizar la hemoglobina', 1],
+    ['M', 'Guardar el hierro fuera del alcance de niños (intoxicación grave)', 0.5],
+    ['C', 'Pregunta si tiene dudas', 0.5]
+  ],
+  perlas: 'Sulfato ferroso: aporta hierro para la síntesis de hemoglobina. Dosis 3 a 6 mg/kg/día de hierro elemental, la AAP sugiere 3 mg/kg/día en una toma. Calcular las gotas según la concentración en mg de hierro elemental por ml del producto que tenga la madre.\nRespuesta esperada: reticulocitosis a los 5 a 10 días y alza de Hb de 1 g/dl o más en 4 semanas. Si no responde: mala adherencia, pérdidas, malabsorción o diagnóstico alternativo (talasemia).\nEn menores de 12 meses evitar leche de vaca no modificada.\n\nContraindicaciones:\nHierro oral: hemocromatosis, anemia no ferropénica (talasemia sin déficit de hierro), anemias hemolíticas.',
+  notas: 'El apunte daba 4 mg/kg/día en 2 dosis y una conversión de "1 gota = 1 mg" para las gotas. La dosis está dentro del rango aceptado. La conversión de gotas depende del producto, por eso se indica calcularla según la concentración del frasco.'
+});
+
+addCase({
+  id: 'ped-18', n: 18, esp: 'Pediatría', tipo: 'oficial', escenario: 'Unidad de Intermedio pediátrico',
+  titulo: 'Síndrome febril sin foco con shock séptico en lactante',
+  vineta: 'Usted es el médico tratante en la Unidad de Intermedio de un hospital de Santiago. Ingresa un lactante de 4 meses con diagnóstico de síndrome febril sin foco. Peso 7 kg. Está pálido, decaído, con piel moteada y llene capilar de 5 segundos. Resto del examen físico normal.',
+  sv: { FC: '190 lpm', PA: '70/40 mmHg', FR: '60 rpm', Temp: '39,8 °C rectal', Glasgow: '13' },
+  tareas: ['Entregue las indicaciones de ingreso completas.'],
+  items: [
+    ['M', 'Régimen cero', 1],
+    ['M', 'Monitorización no invasiva continua o CSV frecuentes', 1],
+    ['M', 'Bolo de SF 20 ml/kg (140 ml) en 5 a 20 minutos, reevaluar y repetir', 1, true],
+    ['M', 'Indica ceftriaxona', 0.5, true],
+    ['M', 'Dosis de ceftriaxona 100 mg/kg/día (700 mg) por posible meningitis', 0.5],
+    ['M', 'No indica ranitidina (retirada). Protección gástrica solo si hay indicación', 0.5],
+    ['M', 'Oxígeno para saturar 94% o más', 0.5],
+    ['M', 'Punción lumbar diferida hasta estabilizar', 1],
+    ['M', 'Solicita 2 hemocultivos antes del ATB, sin retrasarlo', 1],
+    ['M', 'Solicita sedimento y urocultivo por sondeo', 1],
+    ['M', 'Solicita al menos 3: hemograma, PCR, gases y lactato, ELP, glicemia, BUN y creatinina, coagulación, Rx de tórax', 1],
+    ['M', 'Indica antipirético (paracetamol)', 0.5],
+    ['M', 'Control por residencia', 0.5]
+  ],
+  perlas: 'Este lactante no tiene solo un síndrome febril sin foco: tiene shock séptico (taquicardia, hipotensión, llene capilar lento, piel moteada, compromiso de conciencia). Debe ir a UPC.\n\nSurviving Sepsis Campaign pediátrica 2020: bolos de cristaloides de 10 a 20 ml/kg hasta 40 a 60 ml/kg en la primera hora, reevaluando signos de sobrecarga (hepatomegalia, crépitos). ATB dentro de la primera hora. Si persiste el shock tras volumen, iniciar adrenalina o noradrenalina, aun por vía periférica. Corregir hipoglicemia e hipocalcemia.\n\nCeftriaxona 100 mg/kg/día EV (dosis meníngea). Mecanismo: cefalosporina de tercera generación que inhibe la síntesis de pared.\nAgregar vancomicina 60 mg/kg/día EV cada 6 horas si se sospecha meningitis neumocócica o infección por S. aureus. Mecanismo: se une a D alanil D alanina e inhibe la síntesis de pared.\nParacetamol 15 mg/kg/dosis (105 mg), máximo cada 6 horas.\nSi se requiere protección gástrica: omeprazol 1 mg/kg/día. Mecanismo: inhibe la bomba de protones.\n\nContraindicaciones:\nCeftriaxona: RN con hiperbilirrubinemia, uso simultáneo con calcio EV en RN, alergia grave a betalactámicos.\nVancomicina: ajustar en falla renal, infundir lento (síndrome del hombre rojo).\nPunción lumbar: inestabilidad hemodinámica, coagulopatía, hipertensión endocraneana, infección en el sitio.',
+  notas: 'La pauta oficial incluía ranitidina 1 a 3 mg/kg/día. La ranitidina oral fue retirada del mercado chileno por el ISP en 2019 (impureza NDMA) y no está indicada de rutina en sepsis. Esos 2 ítems se reemplazaron por "no indica ranitidina" y "oxígeno".\nEl bolo de SF se corrigió de 30 a 60 minutos a 5 a 20 minutos, por tratarse de shock.\nLa punción lumbar se difiere hasta estabilizar.\nLa dosis de ceftriaxona se fijó en 100 mg/kg/día porque no se puede descartar meningitis.'
+});
+
+addCase({
+  id: 'ped-19', n: 19, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Neumonía adquirida en la comunidad de manejo ambulatorio',
+  vineta: 'Escolar de 7 años, 25 kg, con fiebre de 3 días, tos y dolor en la base derecha. Buen estado general, tolera VO. La radiografía muestra una condensación basal derecha. Otro médico le dijo a la madre que había que hospitalizar.',
+  sv: { FC: '110 lpm', FR: '28 rpm', Temp: '38,6 °C', SatO2: '96% amb' },
+  tareas: ['Explique el diagnóstico a la madre.', 'Entregue indicaciones de manejo ambulatorio.', 'Explique por qué no hospitaliza.'],
+  cx: 'Radiografía de tórax: condensación en lóbulo inferior derecho, sin derrame pleural. La silueta cardiaca se conserva.',
+  items: [
+    ['C', 'Explica la neumonía en lenguaje sencillo', 1],
+    ['D', 'Neumonía bacteriana de lóbulo inferior derecho sin criterios de hospitalización', 1, true],
+    ['M', 'Amoxicilina 80 a 90 mg/kg/día cada 12 horas (1 g cada 12 horas) por 5 a 7 días', 1.5, true],
+    ['M', 'Paracetamol 15 mg/kg/dosis (375 mg) SOS, máximo cada 6 horas', 0.5],
+    ['M', 'No usar antitusivos ni mucolíticos', 0.5],
+    ['M', 'Alimentación fraccionada a tolerancia y abundantes líquidos', 0.5],
+    ['M', 'Reposo relativo, aseo nasal, evitar sobreabrigo', 0.5],
+    ['M', 'Signos de alarma: fiebre más de 48 a 72 h con ATB, dificultad respiratoria, mala tolerancia oral, decaimiento, dolor pleurítico', 1, true],
+    ['M', 'Control a las 48 a 72 horas', 1],
+    ['C', 'Explica por qué no hospitaliza sin desautorizar al colega: sin requerimiento de O2, buena tolerancia oral, sin complicaciones', 1],
+    ['M', 'Conoce criterios de hospitalización', 1]
+  ],
+  perlas: 'Criterios de hospitalización: menor de 3 meses, aspecto tóxico, saturación menor de 93%, dificultad respiratoria importante, neumonía complicada (derrame, absceso), inmunosupresión o comorbilidad relevante, mala tolerancia oral o deshidratación, falla del tratamiento ambulatorio, dudas de adherencia o riesgo social.\nCondensación de lóbulo medio borra el borde cardiaco derecho. Lóbulo inferior borra el diafragma.\n\nAmoxicilina: betalactámico que inhibe la síntesis de pared. Dosis 80 a 90 mg/kg/día, máximo 4 g al día. Estudios recientes (CAP IT, SAFER) apoyan 5 días en niños con buena respuesta.\nSospecha de atípico (mayor de 5 años, cuadro subagudo, tos persistente): azitromicina 10 mg/kg el día 1 y 5 mg/kg los días 2 a 5. Mecanismo: macrólido que inhibe la subunidad 50S.\nSi hay sibilancias: salbutamol 2 a 4 puff cada 4 a 6 horas con aerocámara.\nRx de control a las 4 a 6 semanas solo si la neumonía es redonda, recurrente, con atelectasia o de mala evolución.\n\nContraindicaciones:\nAmoxicilina: alergia a penicilinas.\nAzitromicina: QT largo, alergia a macrólidos.',
+  notas: 'El apunte indicaba "no duchar", que no tiene fundamento, y se eliminó.\nLa duración se ajustó a 5 a 7 días según evidencia reciente. El apunte daba 7 días.'
+});
+
+addCase({
+  id: 'ped-20', n: 20, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Faringoamigdalitis estreptocócica: receta',
+  vineta: 'Debe extender la receta para un paciente de 10 kg con faringoamigdalitis aguda estreptocócica confirmada con test rápido, sin alergias.',
+  tareas: ['Escriba la receta completa.', 'Calcule dosis, volumen y cantidad a comprar.'],
+  items: [
+    ['M', 'Datos del paciente: nombre, RUT, edad y peso', 1],
+    ['D', 'Diagnóstico: faringoamigdalitis aguda estreptocócica', 1],
+    ['M', 'Amoxicilina 50 mg/kg/día: 500 mg al día', 1.5, true],
+    ['M', 'Presentación y volumen: suspensión 250 mg/5 ml, 5 ml cada 12 horas', 1.5, true],
+    ['M', 'Duración 10 días', 1, true],
+    ['M', 'Cantidad total: 100 ml, comprar los frascos necesarios según el volumen del envase', 1],
+    ['M', 'Paracetamol 15 mg/kg/dosis (150 mg) SOS, máximo cada 6 horas, con su presentación', 1],
+    ['M', 'Nombre, RUT y firma del médico, fecha y hora', 1]
+  ],
+  perlas: 'Amoxicilina 50 mg/kg/día en 1 o 2 dosis (máximo 1 g/día) por 10 días para erradicar el estreptococo y prevenir fiebre reumática. Mecanismo: betalactámico, inhibe la síntesis de pared.\nSi usó amoxicilina recientemente o hay recurrencias: amoxicilina con ácido clavulánico.\nAlergia no anafiláctica: cefadroxilo 30 mg/kg/día por 10 días. Anafiláctica: azitromicina 12 mg/kg/día por 5 días o clindamicina.\nEl estreptococo es raro en menores de 3 años: a un niño de 10 kg (alrededor de 1 año) lo más probable es una faringitis viral. Confirmar siempre antes de tratar.\nParacetamol gotas 100 mg/ml: 150 mg son 1,5 ml.\n\nContraindicaciones:\nAmoxicilina: alergia a penicilinas, mononucleosis (exantema).\nAzitromicina: QT largo.',
+  notas: 'El apunte calculaba 3,5 ml cada 8 horas. Es correcto en dosis (alrededor de 175 mg cada 8 horas), pero 1 o 2 dosis al día mejoran la adherencia con igual eficacia. Revisa qué esquema exige tu pauta.'
+});
+
+addCase({
+  id: 'ped-21', n: 21, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Laringitis aguda obstructiva',
+  vineta: 'Se le muestra el video de un preescolar de 2 años, 12 kg, con tos perruna, disfonía y estridor inspiratorio en reposo de inicio nocturno.',
+  sv: { FR: '36 rpm', FC: '130 lpm', Temp: '37,8 °C', SatO2: '95% amb' },
+  tareas: ['Plantee el diagnóstico y su severidad.', 'Indique el manejo.', 'Defina destino del paciente.'],
+  ef: 'Estridor inspiratorio en reposo, retracción supraesternal leve, buena entrada de aire, conciencia normal, sin cianosis.',
+  items: [
+    ['D', 'Laringitis aguda obstructiva (croup) moderada', 1.5, true],
+    ['D', 'Clasifica severidad: estridor en reposo, retracción y conciencia', 1],
+    ['M', 'Mantener tranquilo, en brazos de la madre, sin procedimientos innecesarios', 0.5],
+    ['M', 'Dexametasona 0,15 a 0,6 mg/kg VO o IM dosis única', 1.5, true],
+    ['M', 'Nebulización con adrenalina corriente 0,5 ml/kg (máximo 5 ml) o racémica 0,05 ml/kg', 1.5, true],
+    ['M', 'Oxígeno si saturación menor de 93%', 0.5],
+    ['M', 'Observar 2 a 3 horas tras la adrenalina por efecto rebote', 1],
+    ['M', 'Criterios de hospitalización: severa, sin respuesta tras observación, requerimiento de O2, consultas repetidas', 1],
+    ['M', 'Al alta: signos de alarma (estridor en reposo, dificultad respiratoria, cianosis, babeo)', 1],
+    ['M', 'No solicita radiografía de rutina', 0.5]
+  ],
+  perlas: 'Etiología: parainfluenza (principal), VRS, influenza, adenovirus. Más frecuente entre 6 meses y 3 años.\nLeve: sin estridor en reposo. Moderada: estridor en reposo con retracción leve. Severa: estridor bifásico, retracción severa, saturación baja o alteración de conciencia.\n\nDexametasona: corticoide que reduce el edema de la mucosa. Efecto en 2 a 6 horas que dura 24 a 72 horas. 0,15 mg/kg en leve y hasta 0,6 mg/kg en moderada a severa (12 kg: 1,8 a 7,2 mg).\nAdrenalina nebulizada: vasoconstricción alfa adrenérgica de la mucosa. Efecto en minutos, dura alrededor de 2 horas.\nDiferenciales: epiglotitis (babeo, posición en trípode, aspecto tóxico), traqueítis bacteriana, cuerpo extraño, absceso retrofaríngeo.\n\nContraindicaciones:\nAdrenalina nebulizada: obstrucción del tracto de salida ventricular (tetralogía de Fallot), taquiarritmia.\nDexametasona: varicela activa o exposición reciente en susceptibles (relativa), TBC activa.',
+  notas: 'El apunte indicaba dexametasona con máximo de 4 mg. No encontré respaldo para ese tope. Las guías usan 0,15 a 0,6 mg/kg con máximos de 10 a 16 mg según la fuente.'
+});
+
+addCase({
+  id: 'ped-22', n: 22, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Profilaxis de contactos de coqueluche',
+  vineta: 'Madre de 30 años con coqueluche confirmado por PCR. En su casa viven su hijo de 2 meses (1 dosis de hexavalente), su hija de 5 años con vacunas al día, su pareja de 32 años sana y su madre de 70 años.',
+  tareas: ['Defina qué es un contacto.', 'Indique quiénes requieren profilaxis y con qué fármaco y dosis.', 'Señale otras medidas.'],
+  items: [
+    ['D', 'Define contacto: grupo familiar directo y quienes duermen bajo el mismo techo', 1],
+    ['M', 'Lactante de 2 meses requiere profilaxis (menor de 1 año, independiente de vacunas)', 1.5, true],
+    ['M', 'Abuela de 70 años requiere profilaxis (mayor de 65)', 1],
+    ['M', 'Hija de 5 años vacunada y pareja sana no son contactos de riesgo según norma MINSAL', 1],
+    ['M', 'Conoce otros contactos de riesgo: embarazada del tercer trimestre, enfermos cardiopulmonares crónicos, menores de 2 años con menos de 3 dosis', 0.5],
+    ['M', 'Tratamiento de la madre (caso índice)', 0.5],
+    ['M', 'Lactante: azitromicina 10 mg/kg/día por 5 días', 1.5, true],
+    ['M', 'Adultos: azitromicina 500 mg el día 1 y 250 mg los días 2 a 5', 1],
+    ['M', 'Vigilar síntomas en los contactos y estudiar con PCR si aparecen', 1],
+    ['M', 'Notificación obligatoria', 0.5],
+    ['M', 'Completar esquema de vacunas y dTpa en embarazo desde las 28 semanas', 0.5]
+  ],
+  perlas: 'Azitromicina: macrólido que inhibe la subunidad ribosomal 50S. Menores de 6 meses: 10 mg/kg/día por 5 días. Desde 6 meses: 10 mg/kg el día 1 (máximo 500 mg) y 5 mg/kg los días 2 a 5 (máximo 250 mg). Es el macrólido de elección en menores de 1 mes.\nClaritromicina 15 mg/kg/día cada 12 horas por 7 días (no en menores de 1 mes).\nEritromicina 40 a 50 mg/kg/día cada 6 horas por 14 días (no en menores de 1 mes por estenosis hipertrófica del píloro).\nAlergia a macrólidos: cotrimoxazol en mayores de 2 meses.\nEl lactante menor de 3 meses es el de mayor riesgo de muerte: apneas, cianosis, coqueluche maligno. Estrategia capullo: vacunar a la embarazada y al entorno.\n\nContraindicaciones:\nMacrólidos: QT largo, alergia. Eritromicina y claritromicina: menores de 1 mes, interacciones por CYP3A4.\nCotrimoxazol: menores de 2 meses, déficit de G6PD.',
+  notas: 'El apunte indicaba eritromicina por 7 días. La duración recomendada para eritromicina es 14 días.\nLa norma MINSAL limita la profilaxis a contactos de riesgo, mientras que CDC la recomienda a todos los contactos del hogar. Responde según la norma chilena.'
+});
+
+addCase({
+  id: 'ped-23', n: 23, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Bronquiolitis aguda',
+  vineta: 'Lactante de 4 meses, 6 kg, con coriza de 2 días seguida de tos y dificultad respiratoria. Se alimenta a la mitad de lo habitual. Asiste a sala cuna.',
+  sv: { FC: '160 lpm', FR: '62 rpm', Temp: '37,8 °C', SatO2: '91% amb' },
+  tareas: ['Realice anamnesis dirigida.', 'Plantee el diagnóstico y su gravedad.', 'Indique el manejo.'],
+  an: 'Nacido de término, sin cardiopatía ni enfermedad pulmonar. Sin apneas. Hermano con resfrío. No recibió nirsevimab.',
+  ef: 'Retracción subcostal moderada, sibilancias espiratorias y crépitos bilaterales. Sin cianosis.',
+  items: [
+    ['A', 'Pregunta edad, prematurez, cardiopatía o enfermedad pulmonar, apneas, ingesta, contactos y nirsevimab', 1],
+    ['D', 'Bronquiolitis aguda, probablemente por VRS', 1.5, true],
+    ['D', 'Evalúa gravedad con score de Tal o similar', 1],
+    ['M', 'Hospitaliza por saturación menor de 93% y mala ingesta', 1.5, true],
+    ['M', 'Oxígeno para saturación objetivo', 1],
+    ['M', 'Aseo nasal y posición semisentada', 0.5],
+    ['M', 'Alimentación fraccionada, SNG o fleboclisis si no tolera', 1],
+    ['M', 'No usa broncodilatadores, corticoides ni ATB de rutina', 1, true],
+    ['M', 'No pide exámenes de rutina, panel viral solo para cohorte', 0.5],
+    ['M', 'Aislamiento de contacto y gotitas', 0.5],
+    ['C', 'Explica la evolución: peor entre los días 3 y 5, tos hasta 2 a 3 semanas', 0.5]
+  ],
+  perlas: 'Diagnóstico clínico. Peak entre 2 y 6 meses. VRS es la causa principal.\nScore de Tal (0 a 3 cada uno): frecuencia respiratoria, sibilancias, cianosis y retracción. Leve 5 o menos, moderada 6 a 8, severa 9 o más.\nFactores de riesgo de gravedad: menor de 12 semanas, prematurez, cardiopatía congénita, enfermedad pulmonar crónica, inmunodeficiencia.\nHospitalizar si: apneas, saturación bajo el objetivo, Tal de 9 o más, sin respuesta tras observación, incapacidad de alimentarse.\nNo recomendados de rutina: salbutamol, adrenalina, corticoides, kinesioterapia, antibióticos. Suero hipertónico solo en hospitalizados según protocolo.\nPrevención: nirsevimab en la primera temporada, lactancia materna, evitar humo de tabaco y lavado de manos.',
+  notas: 'Umbral de oxígeno: la norma chilena suele usar saturación de 93%. La AAP acepta 90%. Responde según la pauta de tu centro.'
+});
+
+addCase({
+  id: 'ped-24', n: 24, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Otitis media aguda: receta',
+  vineta: 'Debe extender la receta para un lactante de 10 kg con otalgia, fiebre y compromiso del estado general. La otoscopía muestra membrana abombada y eritematosa. Sin alergias.',
+  tareas: ['Escriba la receta completa.', 'Calcule dosis, volumen y cantidad.', 'Indique control y signos de alarma.'],
+  items: [
+    ['M', 'Datos del paciente: nombre, RUT, edad y peso', 1],
+    ['D', 'Diagnóstico: otitis media aguda', 1],
+    ['M', 'Amoxicilina 80 a 90 mg/kg/día cada 12 horas: 400 a 450 mg cada 12 horas', 1.5, true],
+    ['M', 'Presentación y volumen: suspensión 500 mg/5 ml, 4 ml cada 12 horas', 1.5, true],
+    ['M', 'Duración 10 días por ser menor de 2 años', 1, true],
+    ['M', 'Cantidad total: 80 ml, comprar los frascos necesarios', 0.5],
+    ['M', 'Paracetamol 15 mg/kg/dosis (150 mg) SOS cada 6 horas o ibuprofeno 10 mg/kg/dosis cada 8 horas', 1],
+    ['M', 'Control si persiste la fiebre o el dolor a las 48 a 72 horas, signos de alarma', 1],
+    ['M', 'Nombre, RUT y firma del médico, fecha y hora', 0.5]
+  ],
+  perlas: 'Amoxicilina en dosis altas para cubrir neumococo con sensibilidad disminuida. Mecanismo: betalactámico, inhibe la síntesis de pared.\nDuración: 10 días en menores de 2 años, 7 días entre 2 y 5 años, 5 a 7 días desde los 6 años.\nFalla a las 48 a 72 horas: amoxicilina con ácido clavulánico (90 mg/kg/día de amoxicilina) o ceftriaxona 50 mg/kg IM por 1 a 3 días.\nAlergia no anafiláctica: cefuroxima 30 mg/kg/día cada 12 horas. Anafiláctica: azitromicina o clindamicina.\nObservación sin ATB es una opción en mayores de 2 años con OMA unilateral leve y seguimiento asegurado. No aplica a este lactante con compromiso general.\nIbuprofeno: inhibidor no selectivo de COX, desde los 6 meses.\nComplicaciones: mastoiditis, parálisis facial, meningitis.\n\nContraindicaciones:\nAmoxicilina: alergia a penicilinas.\nIbuprofeno: menores de 6 meses, deshidratación, varicela, sangrado, enfermedad renal.',
+  notas: 'El apunte usaba en otra sección amoxicilina 80 mg/kg/día cada 8 horas. La recomendación actual es cada 12 horas.'
+});
+
+addCase({
+  id: 'ped-25', n: 25, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Meningitis bacteriana aguda con shock',
+  vineta: 'Lactante de 12 meses, 10 kg, con fiebre de 24 horas, vómitos, irritabilidad y ahora somnolencia. Llene capilar de 4 segundos y extremidades frías.',
+  sv: { FC: '185 lpm', PA: '65/35 mmHg', FR: '45 rpm', Temp: '39,6 °C', Glasgow: '11' },
+  tareas: ['Entregue las indicaciones de ingreso completas.', 'Indique el manejo de contactos.'],
+  ef: 'Fontanela abombada, rigidez de nuca, sin petequias. Pupilas isocóricas reactivas.',
+  items: [
+    ['M', 'ABC: vía aérea, oxígeno al 100%, considerar intubación si Glasgow de 8 o menos', 1, true],
+    ['M', 'Hospitalizar en UCI pediátrica', 1],
+    ['M', 'Régimen cero', 0.5],
+    ['M', 'Bolo de SF 20 ml/kg (200 ml) y reevaluar', 1, true],
+    ['M', 'Ceftriaxona 100 mg/kg/día (1 g) EV', 1.5, true],
+    ['M', 'Vancomicina 60 mg/kg/día EV cada 6 horas (150 mg cada 6 horas)', 1],
+    ['M', 'Dexametasona 0,15 mg/kg cada 6 horas por 2 a 4 días, antes o junto a la primera dosis de ATB', 1],
+    ['M', 'Hemocultivos antes del ATB sin retrasarlo, punción lumbar diferida hasta estabilizar', 1],
+    ['M', 'Hemograma, PCR, ELP (riesgo de SIADH), glicemia, gases, lactato, función renal y coagulación', 0.5],
+    ['M', 'Aislamiento de gotitas por 24 horas desde el inicio del ATB', 0.5],
+    ['M', 'Monitorización neurológica (Glasgow y pupilas), cabecera a 30°, HGT', 0.5],
+    ['M', 'Convulsiones: lorazepam 0,1 mg/kg EV', 0.5],
+    ['M', 'Notificación y profilaxis de contactos si es meningococo o Hib', 1]
+  ],
+  perlas: 'Mayor de 1 mes: ceftriaxona 100 mg/kg/día (máximo 4 g) más vancomicina hasta conocer sensibilidad. Menor de 1 mes: ampicilina más cefotaxima, considerar aciclovir.\nDuración: meningococo 7 días, neumococo y Hib 10 a 14 días, Listeria 14 a 21 días, bacilos gramnegativos 21 días.\nDexametasona: corticoide que reduce la inflamación y la hipoacusia en Hib (y probablemente neumococo). No en menores de 6 semanas.\n\nContraindicaciones de punción lumbar: inestabilidad hemodinámica, hipertensión endocraneana o focalidad, coagulopatía, infección del sitio. TAC previo si hay focalidad, coma, papiledema o convulsiones prolongadas.\nProfilaxis meningococo: rifampicina 10 mg/kg cada 12 horas por 2 días (máximo 600 mg), ceftriaxona IM o ciprofloxacino en adultos. Profilaxis Hib: rifampicina 20 mg/kg/día por 4 días (máximo 600 mg).\nLorazepam: benzodiacepina, potencia GABA-A.\n\nContraindicaciones:\nCeftriaxona: alergia grave a betalactámicos.\nVancomicina: ajustar en falla renal.\nDexametasona: menores de 6 semanas, sospecha de meningitis viral o TBC sin cobertura.\nRifampicina: embarazo, interacciones (anticonceptivos), tiñe secreciones.\nLorazepam: depresión respiratoria sin soporte.',
+  notas: 'El apunte incluía ranitidina, que se eliminó (retirada del mercado chileno).\nLa dexametasona del apunte (0,6 mg/kg/día cada 6 horas por 4 días) equivale a 0,15 mg/kg/dosis. Se aclaró la dosis por toma y la duración de 2 a 4 días.\nSe explicitó diferir la punción lumbar por el shock.'
+});
+
+addCase({
+  id: 'ped-26', n: 26, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Infección urinaria febril de manejo ambulatorio',
+  vineta: 'Lactante de 8 meses, 9 kg, con fiebre de 39 °C de 2 días sin foco. Buen estado general, bien hidratado, tolera VO.',
+  sv: { FC: '140 lpm', Temp: '39 °C' },
+  tareas: ['Plantee el diagnóstico.', 'Indique el tratamiento ambulatorio.', 'Defina estudio y seguimiento.'],
+  cx: 'Orina completa por sondeo: leucocitos más de 10 por campo, nitritos positivos, bacterias abundantes.\nUrocultivo por sondeo: E. coli más de 50.000 UFC/ml.',
+  items: [
+    ['D', 'Infección urinaria febril (pielonefritis aguda)', 1.5, true],
+    ['M', 'Muestra por sondeo o punción, no por bolsa recolectora', 1],
+    ['M', 'Revisa criterios de hospitalización y explica por qué no lo hospitaliza', 1],
+    ['M', 'Cefadroxilo 50 mg/kg/día cada 12 horas (225 mg cada 12 horas)', 1.5, true],
+    ['M', 'Duración de 7 a 10 días', 1],
+    ['M', 'Paracetamol SOS', 0.5],
+    ['M', 'Hidratación abundante y control si persiste la fiebre a las 48 horas', 1],
+    ['M', 'Ecografía renal y vesical', 1, true],
+    ['M', 'Uretrocistografía solo si la ecografía es anormal, ITU recurrente o atípica', 0.5],
+    ['M', 'Educación: aseo genital, manejo de la constipación', 0.5],
+    ['M', 'Signos de alarma: decaimiento, vómitos, rechazo alimentario, fiebre persistente', 0.5]
+  ],
+  perlas: 'Criterios de hospitalización: menor de 3 meses, aspecto tóxico o séptico, vómitos o intolerancia oral, deshidratación, falta de respuesta a 48 horas, riesgo social, uropatía conocida.\nUrocultivo positivo: punción vesical cualquier recuento, sondeo 10.000 a 50.000 UFC/ml o más según la guía, segundo chorro en niño continente 100.000 UFC/ml.\nGérmenes: E. coli (principal), Proteus, Klebsiella, Enterococo.\n\nCefadroxilo: cefalosporina de primera generación, inhibe la síntesis de pared. Ajustar el ATB al antibiograma.\nHospitalizado: ceftriaxona 50 mg/kg/día EV, luego paso a VO. Menor de 3 meses: ampicilina más cefotaxima o gentamicina.\nProfilaxis antibiótica no rutinaria. Considerar en reflujo de alto grado o ITU recurrente.\n\nContraindicaciones:\nCefadroxilo: anafilaxia a betalactámicos, ajustar en falla renal.\nNitrofurantoína (alternativa en ITU baja): no en pielonefritis, falla renal, déficit de G6PD, menores de 1 mes.',
+  notas: 'El apunte indicaba uretrocistografía en todo menor de 1 año. La AAP desde 2011 la reserva para ecografía anormal, ITU recurrente o atípica. Algunas guías nacionales todavía la indican en menores de 1 año, revisa cuál usa tu pauta.\nUmbral por sondeo: el apunte usaba 10.000 UFC/ml y la AAP 50.000 UFC/ml.'
+});
+
+addCase({
+  id: 'ped-27', n: 27, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Síndrome diarreico agudo con deshidratación moderada',
+  vineta: 'Preescolar de 18 meses, 11 kg, con diarrea acuosa de 2 días, 6 deposiciones al día sin sangre y 2 vómitos. Está irritable y con sed.',
+  sv: { FC: '150 lpm', Temp: '37,9 °C' },
+  tareas: ['Realice anamnesis y evalúe el grado de deshidratación.', 'Indique el plan de hidratación.', 'Entregue indicaciones de alimentación y signos de alarma.'],
+  ef: 'Mucosas secas, ojos hundidos, llene capilar de 2 a 3 segundos, signo del pliegue que se recupera lentamente. Conciencia conservada.',
+  items: [
+    ['A', 'Pregunta frecuencia, sangre o mucus, vómitos, diuresis, ingesta y contactos', 1],
+    ['E', 'Evalúa el grado de deshidratación con signos clínicos', 1, true],
+    ['D', 'Síndrome diarreico agudo con deshidratación moderada', 1],
+    ['M', 'Plan B: SRO 50 a 100 ml/kg en 4 horas (550 a 1100 ml)', 1.5, true],
+    ['M', 'Administrar fraccionado con cuchara, si vomita esperar 10 minutos y seguir más lento', 1],
+    ['M', 'Ondansetrón 0,15 mg/kg VO dosis única si hay vómitos', 0.5],
+    ['M', 'Reevaluar a las 4 horas y pasar a plan A', 1],
+    ['M', 'Plan A: SRO 100 a 200 ml tras cada deposición líquida', 1],
+    ['M', 'Realimentación precoz con su dieta habitual, sin ayuno ni diluir la leche', 1],
+    ['M', 'No antidiarreicos ni antibióticos de rutina, evitar bebidas y jugos', 0.5],
+    ['M', 'Signos de alarma: no tolera, orina menos, llora sin lágrimas, decaído, sangre en deposiciones', 1],
+    ['M', 'Plan C si deshidratación severa o shock', 0.5]
+  ],
+  perlas: 'Plan A (sin deshidratación): SRO 50 a 100 ml en menores de 1 año y 100 a 200 ml en mayores tras cada deposición o vómito.\nPlan B (moderada): SRO 50 a 100 ml/kg en 4 horas.\nPlan C (severa): Ringer lactato o SF, bolos de 20 ml/kg reevaluando, o esquema OMS de 100 ml/kg (30 ml/kg en 30 a 60 minutos y 70 ml/kg en 2,5 a 5 horas). Pasar a SRO apenas sea posible.\nIndicaciones de vía EV: shock, compromiso de conciencia, vómitos incoercibles, íleo, falla de la vía oral.\n\nOndansetrón: antagonista 5 HT3. Facilita la rehidratación oral.\nZinc 10 mg/día en menores de 6 meses y 20 mg/día en mayores por 10 a 14 días (recomendación OMS).\nProbióticos (S. boulardii, L. rhamnosus GG): evidencia contradictoria, uso opcional.\nAntibióticos: Shigella, cólera, Campylobacter disentérico precoz. Salmonella solo en menores de 3 meses, inmunocomprometidos o bacteriemia.\nGiardiasis: metronidazol 15 mg/kg/día cada 8 horas por 5 a 7 días o tinidazol 50 mg/kg dosis única (máximo 2 g).\n\nContraindicaciones:\nOndansetrón: QT largo, menores de 6 meses.\nMetronidazol: alergia, evitar alcohol (efecto antabús).\nLoperamida: contraindicada en niños pequeños.',
+  notas: 'El apunte indicaba régimen sin residuos. La recomendación actual es realimentar con la dieta habitual.\nGiardiasis: el apunte daba metronidazol 30 mg/kg/día por 10 días. Se corrigió a 15 mg/kg/día por 5 a 7 días.\nProbióticos: evidencia discutida (ensayos negativos en NEJM 2018), se marcan como opcionales.'
+});
+
+addCase({
+  id: 'ped-28', n: 28, esp: 'Pediatría', tipo: 'construida', escenario: 'Estación escrita',
+  titulo: 'Sales de rehidratación oral: verdadero o falso',
+  vineta: 'Se le presentan 2 soluciones para la diarrea:\nHidrasol: Na 20 mEq/l, K 10, Cl 20, glucosa 300 mmol/l, con fibra de soya. "Acorta la diarrea".\nRehsal 60: Na 60 mEq/l, K 20, Cl 50, citrato 30, glucosa 111 mmol/l.\n\nResponda verdadero o falso a las afirmaciones.',
+  tareas: ['1. Hidrasol tiene la cantidad de sodio necesaria para rehidratar.', '2. La fibra o la soya agregada acortan la diarrea.', '3. Rehsal 60 es una solución adecuada.', '4. En diarrea siempre se usan SRO y nunca la vía EV.', '5. Una SRO bien formulada acorta la duración de la diarrea.', '6. Las bebidas gaseosas y jugos sirven para rehidratar.', '7. La absorción de sodio depende del cotransporte con glucosa.', '8. Hidrasol, por su glucosa elevada, puede empeorar la diarrea.'],
+  items: [
+    ['D', '1. FALSO: 20 mEq/l de sodio es insuficiente, se requieren entre 45 y 90 mEq/l', 1],
+    ['D', '2. FALSO: no hay evidencia de que la fibra o la soya acorten la diarrea', 1],
+    ['D', '3. VERDADERO: 60 mEq/l de sodio y glucosa 111 mmol/l son adecuados', 1],
+    ['D', '4. FALSO: se usa EV en shock, compromiso de conciencia, vómitos incoercibles o íleo', 1, true],
+    ['D', '5. FALSO: la SRO corrige la deshidratación pero no acorta la diarrea', 1],
+    ['D', '6. FALSO: son hiperosmolares, bajas en sodio y empeoran la diarrea', 1],
+    ['D', '7. VERDADERO: cotransporte sodio glucosa (SGLT1) en el enterocito', 1],
+    ['D', '8. VERDADERO: la hiperosmolaridad produce diarrea osmótica', 1]
+  ],
+  perlas: 'SRO OMS de osmolaridad reducida: sodio 75 mEq/l, glucosa 75 mmol/l, potasio 20, cloro 65, citrato 10, osmolaridad 245 mOsm/l.\nLas soluciones con 45 a 60 mEq/l de sodio se usan en prevención y mantención en diarreas no coléricas.\nLa relación glucosa sodio cercana a 1:1 optimiza el cotransporte.\nLa SRO no disminuye el volumen ni la duración de la diarrea, previene y trata la deshidratación.',
+  notas: 'Hidrasol y su composición son ficticios, como en la estación descrita en el apunte. Rehsal 60 se tomó del apunte.'
+});
+
+addCase({
+  id: 'ped-29', n: 29, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Soplo cardiaco en lactante',
+  vineta: 'Lactante de 9 meses, aparentemente sano, en quien se ausculta un soplo III/VI en todo el precordio durante el control.',
+  tareas: ['Realice anamnesis dirigida.', 'Indique qué busca al examen físico.', 'Defina su conducta.'],
+  an: 'Se cansa al tomar la mamadera y suda. Bronquitis frecuentes. Ha bajado de carril en la curva de peso.',
+  ef: 'Soplo holosistólico III/VI en borde esternal izquierdo bajo, irradiado. FR 50 rpm. Hígado a 3 cm. Pulsos simétricos.',
+  items: [
+    ['A', 'Cansancio o sudoración al alimentarse', 1],
+    ['A', 'Cianosis en reposo o con el llanto', 1],
+    ['A', 'Infecciones respiratorias a repetición', 1],
+    ['A', 'Incremento pondoestatural (curvas)', 1],
+    ['A', 'Antecedentes familiares de cardiopatía o muerte súbita en menores de 50 años', 0.5],
+    ['A', 'Síncope, palpitaciones o dolor torácico', 0.5],
+    ['E', 'Pulsos y presión arterial en las 4 extremidades', 1, true],
+    ['E', 'Signos de insuficiencia cardiaca: taquipnea, hepatomegalia, crépitos', 1],
+    ['E', 'Caracteriza el soplo: grado, foco, irradiación, segundo ruido, cambios con la posición', 1],
+    ['D', 'Soplo patológico, probable cortocircuito de izquierda a derecha (CIV)', 1, true],
+    ['M', 'ECG, radiografía de tórax, ecocardiograma e interconsulta a cardiología infantil', 1, true],
+    ['D', 'Diferencia con soplo inocente (de Still: vibratorio, II/VI, varía con la posición)', 0.5]
+  ],
+  perlas: 'Soplo inocente: sistólico, grado III o menor, segundo ruido normal, varía con la posición y Valsalva, poca irradiación, niño asintomático con buen crecimiento.\nSignos de cortocircuito importante: taquipnea, sudoración al comer, mal incremento ponderal, infecciones respiratorias repetidas, hepatomegalia.\nEl RN con soplo patológico debe ser evaluado por cardiología en menos de 48 horas.\nInsuficiencia cardiaca: furosemida 1 mg/kg/dosis. Mecanismo: diurético de asa que inhibe el cotransportador Na K 2Cl. Contraindicaciones: anuria, hipovolemia, hipokalemia grave.'
+});
+
+// ================== PEDIATRÍA (parte 3) ==================
+addCase({
+  id: 'ped-30', n: 30, esp: 'Pediatría', tipo: 'construida', escenario: 'Consulta APS',
+  titulo: 'Técnica inhalatoria con aerocámara',
+  vineta: 'Madre con su hijo de 2 años con sibilancias recurrentes. Debe indicarle salbutamol. Frente a usted hay varios inhaladores (salbutamol, bromuro de ipratropio, fluticasona, uno de ellos vencido), aerocámaras con y sin válvula y mascarillas de distintos tamaños.',
+  tareas: ['Elija el inhalador y la aerocámara adecuados y explique por qué.', 'Enseñe la técnica a la madre.', 'Indique la dosis.'],
+  items: [
+    ['M', 'Elige salbutamol (no corticoide ni ipratropio) y verifica que no esté vencido', 1, true],
+    ['M', 'Elige aerocámara con válvula y mascarilla del tamaño adecuado', 1, true],
+    ['C', 'Explica que sin aerocámara el fármaco queda en la boca y no llega a los pulmones', 1],
+    ['M', 'Agitar el inhalador y retirar la tapa', 1],
+    ['M', 'Conectar el inhalador a la aerocámara', 0.5],
+    ['M', 'Niño sentado y contenido por la madre, tranquilo', 0.5],
+    ['M', 'Mascarilla sellando boca y nariz', 1],
+    ['M', 'Un puff por vez', 1],
+    ['M', 'Mantener la mascarilla durante 5 a 6 respiraciones o 10 segundos', 1, true],
+    ['M', 'Esperar 30 a 60 segundos y agitar de nuevo antes del siguiente puff', 0.5],
+    ['M', 'Dosis: 2 puff cada 4 a 6 horas según síntomas', 1],
+    ['M', 'Limpieza de la aerocámara y control de dosis restantes con contador o registro', 0.5],
+    ['C', 'Pide a la madre que demuestre la técnica', 1]
+  ],
+  perlas: 'Salbutamol: agonista beta 2 de acción corta, broncodilatador. Inhalador de 100 µg por puff.\nCrisis de asma: 4 a 10 puff cada 20 minutos por 3 veces la primera hora (2 a 6 en menores de 6 años según GINA) y reevaluar. Prednisona 1 a 2 mg/kg/día VO (máximo 40 mg) por 3 a 5 días. Hospitalizar si requiere oxígeno o no responde.\nMenores de 4 años: aerocámara con mascarilla. Mayores: aerocámara con boquilla, inspiración lenta y profunda, retener 5 a 10 segundos.\nPEF: el mejor de 3 intentos, de pie, inspiración máxima y soplido rápido. Comparar con el mejor valor personal.\n\nContraindicaciones:\nSalbutamol: hipersensibilidad. Precaución en taquiarritmias, hipertiroidismo, hipokalemia.\nPrednisona: varicela activa, infección sistémica no tratada. Precaución en diabetes.',
+  notas: 'El apunte sugería verificar si el inhalador está vacío viendo si flota en agua. Ese método no es confiable y no se recomienda. Se usa contador de dosis o registro de puffs.'
+});
+
+addCase({
+  id: 'ped-31', n: 31, esp: 'Pediatría', tipo: 'construida', escenario: 'Domicilio / ambulancia',
+  titulo: 'Intoxicación por monóxido de carbono con intento suicida',
+  vineta: 'Usted es el médico de la ambulancia. Una adolescente de 15 años fue encontrada por su padre encerrada en el baño con el calefont encendido y la ventana sellada. Está somnolienta, responde al llamado y se queja de cefalea. El padre está muy angustiado.',
+  sv: { FC: '118 lpm', PA: '100/60 mmHg', FR: '24 rpm', SatO2: '99% (saturómetro)', Glasgow: '13' },
+  tareas: ['Realice el manejo inicial en el lugar.', 'Obtenga información del padre.', 'Explique al padre el manejo y convénzalo del traslado.'],
+  an: 'Padre: la encontró hace 15 minutos. Llevaba al menos 1 hora en el baño. Ha estado triste desde que terminó con su pololo. Toma sertralina. No sabe si tomó otras pastillas. Quiere llevarla él en auto porque "ya está mejor".',
+  items: [
+    ['M', 'Seguridad de la escena: ventilar y retirar a la paciente de la fuente', 1, true],
+    ['M', 'ABC', 1],
+    ['M', 'Oxígeno al 100% con mascarilla de alto flujo con reservorio', 1.5, true],
+    ['M', 'Intubar si Glasgow de 8 o menos o falla respiratoria', 0.5],
+    ['A', 'Pregunta tiempo de exposición, tiempo desde el hallazgo y coingesta de fármacos u otras sustancias', 1],
+    ['A', 'Pregunta antecedentes psiquiátricos e intentos previos', 1],
+    ['C', 'Explica al padre la necesidad de traslado en ambulancia aunque se vea mejor', 1],
+    ['M', 'Hospitalización con monitorización', 1],
+    ['M', 'Carboxihemoglobina (el saturómetro no es confiable)', 1, true],
+    ['M', 'ECG, troponina, gases y lactato, ELP, glicemia, test de embarazo y screening de fármacos', 1],
+    ['M', 'Conoce criterios de cámara hiperbárica', 1],
+    ['M', 'Evaluación psiquiátrica y no dejarla sola', 1],
+    ['C', 'Acoge la angustia del padre', 0.5]
+  ],
+  perlas: 'El CO se une a la hemoglobina con afinidad 200 veces mayor que el O2, desvía la curva a la izquierda y produce hipoxia tisular. El saturómetro convencional sobreestima la saturación.\nVida media de COHb: 4 a 6 horas con aire, 60 a 90 minutos con O2 100%, alrededor de 20 a 30 minutos con O2 hiperbárico.\nSíntomas: cefalea (el más frecuente), mareo, náuseas, confusión, síncope, convulsiones, coma, isquemia miocárdica.\nCámara hiperbárica: compromiso de conciencia o coma, convulsiones, déficit neurológico, isquemia cardiaca, COHb mayor de 25% (o mayor de 15 a 20% en embarazo).\nRiesgo de síndrome neuropsiquiátrico tardío días a semanas después.\nEn incendio considerar intoxicación por cianuro (hidroxocobalamina).\nConvulsiones: benzodiacepinas.\nCoingesta de sertralina: evaluar síndrome serotoninérgico y QT.',
+  notas: 'El apunte decía que se intoxicó al "dar el gas". El gas de cañería o licuado sin combustión no produce CO, asfixia por desplazamiento. La intoxicación por CO viene de la combustión incompleta (calefont, brasero, estufa), por eso la viñeta usa un calefont.\nEl apunte indicaba fenobarbital de mantención tras convulsiones. Se dejó solo el manejo agudo con benzodiacepinas.'
+});
+
+addCase({
+  id: 'ped-32', n: 32, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Intoxicación por benzodiacepinas con intento suicida',
+  vineta: 'Padre consulta con su hija de 16 años que hace 40 minutos tomó "varias" pastillas de clonazepam de la madre. Está somnolienta, responde a estímulo verbal y respira bien.',
+  sv: { FC: '88 lpm', PA: '105/65 mmHg', FR: '14 rpm', SatO2: '97% amb', Glasgow: '13' },
+  tareas: ['Realice la evaluación y el manejo inicial.', 'Obtenga la información relevante.', 'Explique al padre el plan.'],
+  an: 'Faltan alrededor de 15 comprimidos de clonazepam 2 mg. No sabe si tomó algo más. Hay paracetamol en la casa. Dejó una carta.',
+  items: [
+    ['M', 'ABC con énfasis en la vía aérea y la ventilación', 1, true],
+    ['A', 'Qué, cuánto, cuándo, cómo y coingesta (alcohol, paracetamol, otros fármacos)', 1.5, true],
+    ['A', 'Explora la intencionalidad', 0.5],
+    ['M', 'Contacta a CITUC', 0.5],
+    ['M', 'Hospitaliza con monitorización', 1],
+    ['M', 'Carbón activado 1 g/kg solo si está dentro de 1 hora y la vía aérea está protegida', 1],
+    ['M', 'Niveles de paracetamol y etanol, ECG, glicemia, ELP y test de embarazo', 1],
+    ['M', 'No usa flumazenil de rutina', 1, true],
+    ['C', 'Explica el riesgo de reintento y pide retirar los fármacos del hogar', 1],
+    ['M', 'Evaluación psiquiátrica antes del alta, no dejarla sola', 1],
+    ['C', 'Explica al padre con empatía y sin culpar', 0.5]
+  ],
+  perlas: 'Las benzodiacepinas solas rara vez son letales. El riesgo está en la coingesta (alcohol, opioides) y en la vía aérea.\nTodo intento suicida con fármacos requiere nivel de paracetamol aunque no lo mencionen.\nFlumazenil 0,01 mg/kg EV (máximo 0,2 mg por dosis). Mecanismo: antagonista competitivo del sitio benzodiacepínico del receptor GABA-A. Reservado para intoxicación iatrogénica pura en pacientes sin dependencia.\nCarbón activado 1 g/kg (máximo 50 g). La emesis inducida y el lavado gástrico no se recomiendan de rutina.\nAntídotos: N acetilcisteína (paracetamol), naloxona (opioides), atropina (organofosforados), flumazenil (benzodiacepinas), fragmentos Fab (digoxina), etanol o fomepizol (metanol), azul de metileno (metahemoglobinemia).\n\nContraindicaciones:\nFlumazenil: coingesta de tricíclicos o proconvulsivantes, dependencia a benzodiacepinas, epilepsia (riesgo de convulsiones).\nCarbón activado: vía aérea no protegida, cáusticos, hidrocarburos, íleo, perforación.',
+  notas: 'El apunte proponía emesis y lavado gástrico. Hoy no se recomiendan de rutina.\nEl apunte listaba flumazenil como antídoto sin advertencias. Se agregó que no se usa de rutina por el riesgo de convulsiones.'
+});
+
+addCase({
+  id: 'ped-33', n: 33, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Intoxicación por paracetamol',
+  vineta: 'Adolescente de 15 años, 50 kg, que ingirió 20 comprimidos de paracetamol 500 mg hace 2 horas con fines suicidas. Asintomática.',
+  sv: { FC: '92 lpm', PA: '110/70 mmHg', Temp: '36,8 °C' },
+  tareas: ['Evalúe la toxicidad de la ingesta.', 'Indique el manejo.', 'Señale los exámenes y el seguimiento.'],
+  items: [
+    ['D', 'Calcula la dosis: 10 g, 200 mg/kg, dosis potencialmente hepatotóxica (150 mg/kg o más)', 1.5, true],
+    ['A', 'Hora exacta, ingesta única o escalonada, coingesta', 1],
+    ['A', 'Factores de riesgo: alcohol, ayuno o desnutrición, inductores enzimáticos', 0.5],
+    ['M', 'Carbón activado 1 g/kg (máximo 50 g) dentro de 1 a 2 horas', 1],
+    ['M', 'Nivel plasmático a las 4 horas y nomograma de Rumack Matthew', 1.5, true],
+    ['M', 'N acetilcisteína si el nivel supera la línea, o empírica si hay más de 8 horas o la dosis u hora son inciertas', 1.5, true],
+    ['M', 'Esquema de N acetilcisteína EV', 1],
+    ['M', 'Perfil hepático, INR, función renal, ELP, glicemia y lactato', 1],
+    ['M', 'Hospitalizar, CITUC y evaluación psiquiátrica', 1],
+    ['C', 'Explica que estar asintomática al inicio no descarta toxicidad', 0.5]
+  ],
+  perlas: 'Fases: 1 (0 a 24 h) asintomática o náuseas. 2 (24 a 72 h) alza de transaminasas y dolor en hipocondrio derecho. 3 (72 a 96 h) falla hepática fulminante. 4 recuperación o muerte.\nMetabolito tóxico: NAPQI, que se conjuga con glutatión.\n\nN acetilcisteína: repone glutatión y conjuga NAPQI. Máxima eficacia si se inicia antes de 8 horas.\nEV clásico de 21 horas: 150 mg/kg en 1 hora, 50 mg/kg en 4 horas, 100 mg/kg en 16 horas.\nVO: 140 mg/kg de carga, luego 70 mg/kg cada 4 horas por 17 dosis.\nCriterios de King\'s College para derivar a trasplante.\n\nContraindicaciones:\nN acetilcisteína: sin contraindicación absoluta en intoxicación. Las reacciones anafilactoides se manejan pausando la infusión y con antihistamínico.\nCarbón activado: vía aérea no protegida.'
+});
+
+addCase({
+  id: 'ped-34', n: 34, esp: 'Pediatría', tipo: 'construida', escenario: 'Domicilio',
+  titulo: 'Intoxicación por antidepresivos tricíclicos',
+  vineta: 'Lo llaman a un domicilio. Un padre encontró a su hija de 15 años somnolienta junto a una caja de amitriptilina vacía. Le muestra la caja.',
+  sv: { FC: '128 lpm', PA: '95/55 mmHg', FR: '18 rpm', Glasgow: '13' },
+  tareas: ['Salude y obtenga la información del padre.', 'Explique la necesidad de hospitalizar.', 'Indique el manejo inicial y hospitalario.'],
+  an: 'Caja de 30 comprimidos de 25 mg (750 mg). Peso aproximado 50 kg. Hace 1 hora. Midriasis y boca seca.',
+  items: [
+    ['A', 'Saluda, se presenta y pregunta qué, cuánto, cuándo y coingesta', 1],
+    ['A', 'Explora la intencionalidad', 0.5],
+    ['M', 'Contacta a CITUC', 0.5],
+    ['C', 'Explica el riesgo cardiaco y la necesidad de hospitalización urgente y traslado en ambulancia', 1, true],
+    ['M', 'ABCDE y monitor cardiaco continuo', 1, true],
+    ['M', 'ECG: buscar QRS mayor de 100 ms, QTc largo y R en aVR', 1, true],
+    ['M', 'Bicarbonato de sodio 1 a 2 mEq/kg EV si QRS ancho, arritmia o hipotensión', 1.5, true],
+    ['M', 'Convulsiones: benzodiacepinas', 1],
+    ['M', 'Hipotensión: cristaloides y luego noradrenalina', 0.5],
+    ['M', 'Carbón activado si está dentro de 1 a 2 horas y la vía aérea está protegida, sin inducir emesis', 1],
+    ['M', 'No usa flumazenil ni fisostigmina', 0.5],
+    ['M', 'Observación con ECG al menos 6 horas', 0.5],
+    ['M', 'Interconsulta a psiquiatría', 0.5],
+    ['C', 'Responde con honestidad si puede morir, destacando la monitorización', 0.5]
+  ],
+  perlas: 'Dosis ingerida: 15 mg/kg en este caso. Más de 10 a 20 mg/kg produce toxicidad grave y 15 mg/kg o más puede ser letal. Desde 5 mg/kg derivar.\nToxicidad: anticolinérgica (midriasis, sequedad, retención urinaria, taquicardia, hipertermia), bloqueo de canales de sodio cardiacos (QRS ancho, arritmias ventriculares), bloqueo alfa (hipotensión) y convulsiones.\nLa toxicidad cardiaca aparece en las primeras 6 horas. Es la principal causa de muerte.\n\nBicarbonato de sodio: alcaliniza y aporta sodio, revierte el bloqueo de canales de sodio. Objetivo pH 7,45 a 7,55. Contraindicaciones: alcalosis metabólica, hipernatremia grave.\nBenzodiacepinas para convulsiones. Evitar fenitoína.\nEvitar antiarrítmicos clase IA y IC, flumazenil y fisostigmina.\nLos niveles plasmáticos no sirven para el manejo.'
+});
+
+addCase({
+  id: 'ped-35', n: 35, esp: 'Pediatría', tipo: 'construida', escenario: 'Centro comercial',
+  titulo: 'Obstrucción de vía aérea por cuerpo extraño en lactante',
+  vineta: 'Está en un centro comercial y una madre le pide ayuda: su hijo de 8 meses, que jugaba con piezas pequeñas, dejó de llorar de repente, no tose ni emite sonidos y está poniéndose cianótico. Demuestre su actuar con el muñeco.',
+  tareas: ['Demuestre el manejo de la obstrucción.', 'Indique qué hace si pierde la conciencia.', 'Entregue indicaciones a la madre al resolverse.'],
+  items: [
+    ['M', 'Evalúa si tose eficazmente (si tose, solo estimular la tos)', 1],
+    ['M', 'Pide ayuda y que alguien llame al 131', 1],
+    ['M', '5 golpes interescapulares con el lactante boca abajo sobre el antebrazo, cabeza más baja', 1.5, true],
+    ['M', '5 compresiones torácicas con 2 dedos sobre el esternón, boca arriba', 1.5, true],
+    ['M', 'Revisa la boca y extrae solo si el objeto es visible, sin barrido a ciegas', 1, true],
+    ['M', 'Repite ciclos hasta resolver o hasta que pierda la conciencia', 0.5],
+    ['M', 'Si pierde la conciencia: RCP (30:2 con un reanimador, 15:2 con dos), revisando la boca antes de ventilar', 1.5, true],
+    ['M', 'Conoce que en mayores de 1 año se usan compresiones abdominales (Heimlich)', 1],
+    ['M', 'Tras resolver, indica evaluación médica', 0.5],
+    ['C', 'Tranquiliza y explica a la madre', 0.5],
+    ['M', 'Educa en prevención: juguetes y alimentos pequeños fuera del alcance', 0.5]
+  ],
+  perlas: 'Tos eficaz (llora, habla, tose con fuerza): no intervenir, estimular la tos y vigilar.\nTos ineficaz consciente: menor de 1 año alternar 5 golpes en la espalda y 5 compresiones torácicas. Mayor de 1 año: compresiones abdominales. En obesos o embarazadas: compresiones torácicas.\nInconsciente: iniciar RCP. Compresiones a 100 a 120 por minuto, profundidad de un tercio del tórax (4 cm en lactantes, 5 cm en niños).\nTras una maniobra de desobstrucción siempre derivar a evaluación (riesgo de lesión o cuerpo extraño residual).'
+});
+
+addCase({
+  id: 'ped-36', n: 36, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Convulsión febril',
+  vineta: 'Llega a Urgencia un niño de 2 años, 12 kg, en crisis tónico clónica generalizada. Su madre dice que comenzó hace 5 minutos. Tiene fiebre y coriza desde ayer.',
+  sv: { FC: '160 lpm', Temp: '39,2 °C', SatO2: '90% amb' },
+  tareas: ['Maneje la crisis.', 'Una vez cedida, plantee el diagnóstico y el estudio.', 'Eduque a la madre.'],
+  an: 'Desarrollo psicomotor normal, vacunas al día. Primer episodio. Padre tuvo convulsiones febriles en la infancia. La crisis cedió a los 7 minutos tras la benzodiacepina y quedó somnoliento 30 minutos, sin focalidad.',
+  items: [
+    ['M', 'Pide ayuda y registra el tiempo de la crisis', 0.5],
+    ['M', 'Protege, posiciona la vía aérea y aspira secreciones', 1],
+    ['M', 'Oxígeno con mascarilla con reservorio', 1],
+    ['M', 'Monitoriza y mide glicemia capilar', 1, true],
+    ['M', 'Benzodiacepina a los 5 minutos con dosis: midazolam bucal 0,3 mg/kg o intranasal 0,2 mg/kg, diazepam rectal 0,5 mg/kg o lorazepam EV 0,1 mg/kg', 1.5, true],
+    ['M', 'Repite la benzodiacepina una vez a los 5 minutos si persiste', 1],
+    ['M', 'Segunda línea: levetiracetam, fenitoína o fenobarbital y aviso a UPC', 1],
+    ['M', 'Busca el foco febril y da antipirético para confort', 0.5],
+    ['D', 'Clasifica: simple (menos de 15 minutos, generalizada, única en 24 h) o compleja', 1],
+    ['C', 'Explica a la madre: benigna, recurrencia de 1 en 3, riesgo bajo de epilepsia, los antipiréticos no previenen la recurrencia', 1],
+    ['M', 'En casa: no poner nada en la boca, posición lateral, medir el tiempo, consultar o llamar si dura más de 5 minutos', 1],
+    ['M', 'No solicita EEG ni neuroimagen de rutina en convulsión simple', 0.5],
+    ['M', 'Punción lumbar si hay signos meníngeos o menor de 12 meses con vacunas incompletas o ATB previo', 0.5]
+  ],
+  perlas: 'Convulsión febril: entre 6 meses y 5 años, con fiebre, sin infección del SNC ni alteración metabólica.\nCompleja: focal, más de 15 minutos o más de una en 24 horas.\nRecurrencia alrededor de 30%. Mayor riesgo si: primera antes de los 18 meses, antecedente familiar, fiebre baja al convulsionar, poco tiempo de fiebre.\nRiesgo de epilepsia: 1 a 2% en simples, mayor en complejas.\n\nBenzodiacepinas: potencian GABA-A. Midazolam máximo 10 mg. Diazepam rectal máximo 10 mg (20 mg en adolescentes). Lorazepam máximo 4 mg.\nSegunda línea (estudios ESETT y EcLiPSE): levetiracetam 60 mg/kg EV (máximo 4,5 g), fenitoína 20 mg/kg en 20 minutos monitorizado, fenobarbital 20 mg/kg o valproato 40 mg/kg.\n\nContraindicaciones:\nBenzodiacepinas: depresión respiratoria sin soporte, miastenia.\nFenitoína: bradicardia, bloqueo AV.\nValproato: hepatopatía, enfermedad mitocondrial, menores de 2 años (relativa).\nLevetiracetam: ajustar en falla renal.',
+  notas: 'El apunte indicaba diazepam rectal 0,05 mg/kg. La dosis correcta es 0,5 mg/kg.\nEl apunte indicaba EEG a los 10 días. En convulsión febril simple no se recomienda EEG de rutina (AAP).\nSe agregaron levetiracetam y valproato como segunda línea según evidencia reciente.'
+});
+
+addCase({
+  id: 'ped-37', n: 37, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Sospecha de maltrato infantil',
+  vineta: 'Lactante de 8 meses traído por su padre por llanto y aumento de volumen del muslo derecho desde hace 2 días. Refiere que "se cayó del sillón". La radiografía muestra fractura espiroidea de fémur.',
+  tareas: ['Plantee 3 diagnósticos.', 'Entregue 3 argumentos que apoyan la sospecha.', 'Indique 4 medidas de manejo.'],
+  ef: 'Equimosis de distinta coloración en tronco y espalda. Higiene deficiente. Lactante temeroso.',
+  items: [
+    ['D', 'Fractura espiroidea de fémur derecho', 0.5],
+    ['D', 'Sospecha de maltrato infantil', 1, true],
+    ['D', 'Riesgo social', 0.5],
+    ['D', 'Mecanismo no concordante con el desarrollo (lactante de 8 meses que no camina)', 1, true],
+    ['D', 'Consulta tardía', 0.5],
+    ['D', 'Lesiones en distintos estados de evolución o poco habituales', 1],
+    ['M', 'Hospitalizar como medida de protección', 1, true],
+    ['M', 'Serie ósea completa', 1],
+    ['M', 'TAC de cerebro (menor de 1 año) y fondo de ojo', 1],
+    ['M', 'Hemograma, coagulación, transaminasas, lipasa y orina', 0.5],
+    ['M', 'Denuncia dentro de 24 horas (Fiscalía, Carabineros o PDI) y solicitud de medida de protección al Tribunal de Familia', 1, true],
+    ['M', 'Interconsulta a asistente social', 0.5],
+    ['C', 'No confronta ni culpa, registra en forma objetiva', 1]
+  ],
+  perlas: 'Señales de alarma: historia inconsistente o cambiante, mecanismo incompatible con el desarrollo, consulta tardía, lesiones múltiples o en distinta etapa, fracturas metafisarias o costales posteriores, quemaduras en patrón, TEC en lactante no ambulante, cuidadores con conducta inapropiada.\nTodo lactante que no camina con una fractura de hueso largo debe estudiarse por maltrato.\nLa serie ósea detecta más del 80% de las lesiones ocultas.\nEn Chile los profesionales de salud tienen obligación de denunciar dentro de 24 horas los hechos que revistan caracteres de delito (Código Procesal Penal, art. 175).',
+  notas: 'El apunte mencionaba SENAME. Desde 2021 la protección especializada depende del Servicio Nacional de Protección Especializada a la Niñez y Adolescencia.\nEl apunte limitaba la denuncia en 24 horas al abuso sexual. Aplica a todo hecho que revista caracteres de delito.'
+});
+
+addCase({
+  id: 'ped-38', n: 38, esp: 'Pediatría', tipo: 'construida', escenario: 'Box de Urgencia',
+  titulo: 'Síndrome hemolítico urémico',
+  vineta: 'Preescolar de 3 años con diarrea con sangre hace 6 días, ya resuelta. Ahora está pálido, decaído, con edema palpebral y orina poco.',
+  sv: { FC: '130 lpm', PA: '125/80 mmHg', Temp: '36,9 °C' },
+  tareas: ['Plantee el diagnóstico.', 'Indique los exámenes.', 'Indique el manejo.'],
+  cx: 'Hb 7,2 g/dl, plaquetas 45.000, esquistocitos en el frotis, LDH elevada, haptoglobina baja, Coombs directo negativo. Creatinina 2,1 mg/dl, K 5,6 mEq/l.',
+  items: [
+    ['D', 'Síndrome hemolítico urémico típico por E. coli productora de toxina Shiga', 1.5, true],
+    ['D', 'Tríada: anemia hemolítica microangiopática, trombocitopenia y falla renal aguda', 1],
+    ['M', 'Hospitalizar en un centro con diálisis pediátrica disponible', 1],
+    ['M', 'Balance hídrico estricto, peso diario y control de PA', 1],
+    ['M', 'Volumen: cristaloides isotónicos si no hay sobrecarga, restricción si hay oligoanuria con sobrecarga', 1],
+    ['M', 'No antibióticos, antidiarreicos ni antiespasmódicos', 1, true],
+    ['M', 'Evitar AINE y nefrotóxicos', 0.5],
+    ['M', 'Transfusión de glóbulos rojos si Hb menor de 7 g/dl o inestabilidad', 1],
+    ['M', 'Plaquetas solo si hay sangrado activo o procedimiento invasivo', 0.5],
+    ['M', 'Manejo de HTA, hiperkalemia y criterios de diálisis', 1],
+    ['M', 'Coprocultivo o PCR para STEC', 0.5],
+    ['M', 'Seguimiento nefrológico a largo plazo', 0.5]
+  ],
+  perlas: 'Principal causa de falla renal aguda en niños. Agente: E. coli productora de toxina Shiga (O157:H7 y otros), por carne mal cocida, lácteos no pasteurizados, agua o contacto persona a persona.\nLos antibióticos pueden aumentar la liberación de toxina.\nLa expansión de volumen precoz (antes de la oligoanuria) se asocia a menor necesidad de diálisis.\nCriterios de diálisis: anuria prolongada, sobrecarga de volumen refractaria, hiperkalemia, acidosis o uremia sintomática.\nComplicaciones extrarrenales: neurológicas (convulsiones), pancreatitis, colitis grave, miocardiopatía.\nSHU atípico (sin diarrea, recurrente, familiar): estudio del complemento, eculizumab.\n\nContraindicaciones:\nAINE: falla renal. Transfusión de plaquetas: no profiláctica (puede empeorar la microangiopatía).',
+  notas: 'El apunte solo decía "manejo de soporte", sin contenido. Este checklist se construyó desde conocimiento general y no desde el documento. La notificación del SHU depende de la normativa vigente, que no verifiqué.'
+});
+
+
+</script>
+
+<script>
+// ================== APP ==================
+const STORE_KEY = 'ecoe_ped_progress_v1';
+const CUSTOM_KEY = 'ecoe_ped_custom_cases_v1';
+const THEME_KEY = 'ecoe_ped_theme';
+const STATION_SECONDS = 300;
+
+function safeGet(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function safeSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+let progress = safeGet(STORE_KEY, {});
+let customCases = safeGet(CUSTOM_KEY, []);
+function allCases() {
+  const map = new Map();
+  CASES_DATA.forEach(c => map.set(c.id, c));
+  customCases.forEach(c => map.set(c.id, c));
+  return [...map.values()].sort((a, b) => (a.especialidad || '').localeCompare(b.especialidad || '') || (a.numeroEstacion || 0) - (b.numeroEstacion || 0));
+}
+function getCase(id) { return allCases().find(c => c.id === id); }
+
+const state = {
+  view: 'dashboard',
+  mode: 'dirigido',
+  filterEsp: 'Todas',
+  filterEstado: 'Todos',
+  search: '',
+  pool: 'todos',
+  current: null,
+  blind: false,
+  blindNumber: 0,
+  timerId: null,
+  remaining: STATION_SECONDS,
+  startTs: 0,
+  elapsed: 0,
+  beeped: false,
+  checks: {},
+  saved: false,
+  forceWeak: false,
+  notes: ''
+};
+
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function fmt(s) { return esc(s).replace(/\n/g, '<br>'); }
+function mmss(sec) { sec = Math.max(0, Math.round(sec)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
+function icons() { if (window.lucide) lucide.createIcons(); }
+function totalPts(c) { return c.pautaCotejo.reduce((a, i) => a + Number(i.peso || 0), 0); }
+function round1(n) { return Math.round(n * 10) / 10; }
+
+function statusOf(id) {
+  const p = progress[id];
+  if (!p || !p.attempts || !p.attempts.length) return p && p.flag ? 'debil' : 'pendiente';
+  if (p.flag || p.last < 70) return 'debil';
+  if (p.last > 85) return 'dominado';
+  return 'progreso';
+}
+const STATUS_META = {
+  dominado: { label: 'Dominado', cls: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300' },
+  progreso: { label: 'En progreso', cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300' },
+  debil: { label: 'Débil', cls: 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300' },
+  pendiente: { label: 'Pendiente', cls: 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300' }
+};
+const ESP_COLORS = {
+  'Neonatología': 'bg-sky-100 text-sky-800 dark:bg-sky-900/50 dark:text-sky-300',
+  'Pediatría': 'bg-violet-100 text-violet-800 dark:bg-violet-900/50 dark:text-violet-300'
+};
+function badge(text, cls) { return `<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}">${esc(text)}</span>`; }
+
+// ---------- Tema ----------
+function applyTheme() {
+  const t = safeGet(THEME_KEY, null);
+  const dark = t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.classList.toggle('dark', dark);
+}
+function toggleTheme() {
+  const dark = !document.documentElement.classList.contains('dark');
+  safeSet(THEME_KEY, dark ? 'dark' : 'light');
+  applyTheme(); render();
+}
+
+// ---------- Audio ----------
+let audioCtx = null;
+function initAudio() { try { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); } catch (e) {} }
+function beep(freq = 880, dur = 0.25, times = 1) {
+  if (!audioCtx) return;
+  for (let i = 0; i < times; i++) {
+    const t0 = audioCtx.currentTime + i * (dur + 0.12);
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g).connect(audioCtx.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+}
+
+// ---------- Navegación ----------
+function render() {
+  const app = document.getElementById('app');
+  if (state.view === 'dashboard') app.innerHTML = renderDashboard();
+  else if (state.view === 'station') app.innerHTML = renderStation();
+  else if (state.view === 'pauta') app.innerHTML = renderPauta();
+  icons();
+}
+
+function startStation(id, blind) {
+  initAudio();
+  stopTimer();
+  state.current = id;
+  state.blind = !!blind;
+  if (blind) state.blindNumber = Math.floor(Math.random() * 90) + 10;
+  state.remaining = STATION_SECONDS;
+  state.startTs = Date.now();
+  state.elapsed = 0;
+  state.beeped = false;
+  state.checks = {};
+  state.saved = false;
+  state.forceWeak = false;
+  state.notes = '';
+  state.view = 'station';
+  render();
+  window.scrollTo(0, 0);
+  state.timerId = setInterval(tick, 250);
+}
+function stopTimer() { if (state.timerId) { clearInterval(state.timerId); state.timerId = null; } }
+function tick() {
+  const el = (Date.now() - state.startTs) / 1000;
+  state.remaining = Math.max(0, STATION_SECONDS - el);
+  state.elapsed = Math.min(STATION_SECONDS, el);
+  if (!state.beeped && state.remaining <= 60) { state.beeped = true; beep(880, 0.25, 2); }
+  if (state.remaining <= 0) { beep(440, 0.6, 1); goToPauta(); return; }
+  updateTimerUI();
+}
+function updateTimerUI() {
+  const t = document.getElementById('timer');
+  const bar = document.getElementById('topbar');
+  if (!t || !bar) return;
+  t.textContent = mmss(state.remaining);
+  let cls = 'bg-teal-600 dark:bg-teal-700';
+  if (state.remaining <= 60) cls = 'bg-amber-500 dark:bg-amber-600';
+  bar.className = 'sticky top-0 z-30 text-white shadow-md transition-colors ' + cls;
+  const pb = document.getElementById('timebar');
+  if (pb) pb.style.width = (100 * state.remaining / STATION_SECONDS) + '%';
+}
+function goToPauta() {
+  if (state.view !== 'station') return;
+  const ta = document.getElementById('notes');
+  if (ta) state.notes = ta.value;
+  stopTimer();
+  state.elapsed = Math.min(STATION_SECONDS, (Date.now() - state.startTs) / 1000);
+  state.view = 'pauta';
+  render();
+  window.scrollTo(0, 0);
+}
+function backToDashboard() {
+  stopTimer();
+  state.view = 'dashboard';
+  state.current = null;
+  render();
+  window.scrollTo(0, 0);
+}
+
+function poolCases(pool) {
+  const cs = allCases();
+  if (pool === 'debiles') return cs.filter(c => statusOf(c.id) === 'debil');
+  if (pool === 'pendientes') return cs.filter(c => statusOf(c.id) === 'pendiente');
+  return cs;
+}
+function randomStation(pool) {
+  pool = pool || state.pool;
+  let cs = poolCases(pool);
+  if (state.current && cs.length > 1) cs = cs.filter(c => c.id !== state.current);
+  if (!cs.length) { toast(pool === 'debiles' ? 'No tienes estaciones débiles todavía.' : 'No quedan estaciones pendientes.'); return; }
+  const c = cs[Math.floor(Math.random() * cs.length)];
+  startStation(c.id, true);
+}
+
+// ---------- Dashboard ----------
+function renderHeader(extra = '') {
+  return `
+  <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-teal-600 text-white grid place-items-center"><i data-lucide="baby" class="w-5 h-5"></i></div>
+        <div>
+          <h1 class="font-extrabold text-lg leading-tight">ECOE Pediatría y Neonatología</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Estaciones habladas de 5 minutos</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">${extra}
+        <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800" title="Modo claro u oscuro"><i data-lucide="${document.documentElement.classList.contains('dark') ? 'sun' : 'moon'}" class="w-5 h-5"></i></button>
+      </div>
+    </div>
+  </header>`;
+}
+
+function renderDashboard() {
+  const cs = allCases();
+  const counts = { total: cs.length, dominado: 0, progreso: 0, debil: 0, pendiente: 0 };
+  cs.forEach(c => counts[statusOf(c.id)]++);
+  const card = (label, n, icon, cls) => `
+    <div class="rounded-2xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <div class="flex items-center justify-between"><span class="text-sm text-slate-500 dark:text-slate-400">${label}</span><i data-lucide="${icon}" class="w-5 h-5 ${cls}"></i></div>
+      <div class="text-3xl font-extrabold mt-1">${n}</div>
+    </div>`;
+  const tabBtn = (m, label, icon) => `<button onclick="state.mode='${m}';render()" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition ${state.mode === m ? 'bg-teal-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'}"><i data-lucide="${icon}" class="w-4 h-4"></i>${label}</button>`;
+  return `
+  ${renderHeader()}
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <section class="grid grid-cols-2 md:grid-cols-5 gap-3">
+      ${card('Total estaciones', counts.total, 'layers', 'text-slate-400')}
+      ${card('Dominadas (&gt;85%)', counts.dominado, 'trophy', 'text-emerald-500')}
+      ${card('En progreso (70 a 85%)', counts.progreso, 'trending-up', 'text-amber-500')}
+      ${card('Débiles', counts.debil, 'flag', 'text-rose-500')}
+      ${card('Pendientes', counts.pendiente, 'circle-dashed', 'text-slate-400')}
+    </section>
+
+    <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2 flex gap-2">
+      ${tabBtn('dirigido', 'Estudio dirigido', 'target')}
+      ${tabBtn('aleatorio', 'Simulación a ciegas', 'shuffle')}
+    </section>
+
+    ${state.mode === 'dirigido' ? renderDirigido(cs) : renderAleatorio()}
+
+    ${renderDataTools()}
+
+    <p class="text-xs text-center text-slate-400 pb-6">Atajos: <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">R</kbd> estación al azar · <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Espacio</kbd> o <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800">Enter</kbd> ir a pauta durante la estación</p>
+  </main>`;
+}
+
+function renderDirigido(cs) {
+  const esps = ['Todas', ...new Set(cs.map(c => c.especialidad))];
+  const q = state.search.trim().toLowerCase();
+  let list = cs.filter(c => state.filterEsp === 'Todas' || c.especialidad === state.filterEsp);
+  if (state.filterEstado === 'Débiles') list = list.filter(c => statusOf(c.id) === 'debil');
+  if (state.filterEstado === 'Pendientes') list = list.filter(c => statusOf(c.id) === 'pendiente');
+  if (q) list = list.filter(c => (c.titulo + ' ' + c.especialidad + ' ' + (c.instruccionPuerta?.vineta || '')).toLowerCase().includes(q));
+  const sel = (val, opts, handler) => `<select onchange="${handler}" class="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm">${opts.map(o => `<option ${o === val ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  const rows = list.map(c => {
+    const st = statusOf(c.id), p = progress[c.id] || {};
+    const hasMissed = p.missed && p.missed.length && p.attempts && p.attempts.length;
+    return `
+    <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          ${badge(c.especialidad, ESP_COLORS[c.especialidad] || 'bg-slate-200 text-slate-700')}
+          ${badge(STATUS_META[st].label, STATUS_META[st].cls)}
+          ${c.tipoPauta === 'oficial' ? badge('Pauta oficial', 'bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300') : badge('Checklist construido', 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400')}
+        </div>
+        <h3 class="font-semibold truncate">${esc(c.titulo)}</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400">${p.attempts && p.attempts.length ? `Último: <b>${p.last}%</b> · Mejor: ${p.best}% · Intentos: ${p.attempts.length}` : 'Sin intentos'}</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        ${hasMissed ? `<button onclick="showMissed('${c.id}')" class="text-xs px-3 py-2 rounded-lg border border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950 flex items-center gap-1"><i data-lucide="list-x" class="w-4 h-4"></i>Qué me faltó</button>` : ''}
+        <button onclick="toggleFlag('${c.id}')" title="Marcar para reforzar" class="p-2 rounded-lg border ${p.flag ? 'border-rose-400 bg-rose-50 text-rose-600 dark:bg-rose-950 dark:border-rose-800' : 'border-slate-300 dark:border-slate-700 text-slate-400'}"><i data-lucide="flag" class="w-4 h-4"></i></button>
+        <button onclick="startStation('${c.id}', false)" class="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold flex items-center gap-1"><i data-lucide="play" class="w-4 h-4"></i>Iniciar</button>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+  <section class="space-y-3">
+    <div class="flex flex-wrap gap-2 items-center">
+      ${sel(state.filterEsp, esps, "state.filterEsp=this.value;render()")}
+      ${sel(state.filterEstado, ['Todos', 'Débiles', 'Pendientes'], "state.filterEstado=this.value;render()")}
+      <div class="relative flex-1 min-w-[180px]">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input id="searchbox" value="${esc(state.search)}" oninput="state.search=this.value;rerenderList()" placeholder="Buscar estación" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 py-2 text-sm">
+      </div>
+      <span class="text-sm text-slate-500">${list.length} estaciones</span>
+    </div>
+    <div class="space-y-2">${rows || '<p class="text-center text-slate-500 py-8">No hay estaciones con estos filtros.</p>'}</div>
+  </section>`;
+}
+function rerenderList() {
+  const pos = document.getElementById('searchbox')?.selectionStart;
+  render();
+  const sb = document.getElementById('searchbox');
+  if (sb) { sb.focus(); try { sb.setSelectionRange(pos, pos); } catch (e) {} }
+}
+
+function renderAleatorio() {
+  const opt = (v, label, n) => `<label class="flex items-center gap-3 p-3 rounded-xl border cursor-pointer ${state.pool === v ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/40' : 'border-slate-200 dark:border-slate-800'}"><input type="radio" name="pool" ${state.pool === v ? 'checked' : ''} onchange="state.pool='${v}';render()" class="accent-teal-600"><span class="flex-1 font-medium">${label}</span><span class="text-sm text-slate-500">${n}</span></label>`;
+  return `
+  <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-5">
+    <div class="flex items-start gap-3">
+      <i data-lucide="eye-off" class="w-6 h-6 text-teal-600 mt-0.5"></i>
+      <div><h2 class="font-bold text-lg">Simulación a ciegas</h2><p class="text-sm text-slate-500 dark:text-slate-400">Se ocultan el diagnóstico y la especialidad hasta la pauta. Enfréntala como el día del examen.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-3">
+      ${opt('todos', 'Todos los casos', poolCases('todos').length)}
+      ${opt('debiles', 'Solo débiles', poolCases('debiles').length)}
+      ${opt('pendientes', 'Solo no realizados', poolCases('pendientes').length)}
+    </div>
+    <button onclick="randomStation()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center justify-center gap-2 text-lg"><i data-lucide="dices" class="w-5 h-5"></i>Iniciar estación al azar</button>
+  </section>`;
+}
+
+function renderDataTools() {
+  return `
+  <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+    <details>
+      <summary class="p-4 flex items-center justify-between font-semibold"><span class="flex items-center gap-2"><i data-lucide="database" class="w-4 h-4"></i>Gestión de datos</span><i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+      <div class="px-4 pb-4 grid md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <h4 class="font-semibold text-sm">Progreso</h4>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="exportProgress()" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1"><i data-lucide="download" class="w-4 h-4"></i>Exportar .json</button>
+            <label class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1 cursor-pointer"><i data-lucide="upload" class="w-4 h-4"></i>Importar .json<input type="file" accept=".json,application/json" class="hidden" onchange="importProgress(this)"></label>
+            <button onclick="resetProgress()" class="px-3 py-2 rounded-lg border border-rose-300 text-rose-600 dark:border-rose-800 text-sm flex items-center gap-1"><i data-lucide="trash-2" class="w-4 h-4"></i>Borrar progreso</button>
+          </div>
+          <p class="text-xs text-slate-500">El progreso se guarda en este navegador. Exporta para pasarlo a otro dispositivo.</p>
+        </div>
+        <div class="space-y-2">
+          <h4 class="font-semibold text-sm">Agregar casos (JSON)</h4>
+          <textarea id="caseInput" rows="4" placeholder='Pega un objeto o un arreglo de casos con el esquema de CASES_DATA' class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs font-mono"></textarea>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="loadCasesFromText()" class="px-3 py-2 rounded-lg bg-teal-600 text-white text-sm flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4"></i>Cargar casos</button>
+            <label class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1 cursor-pointer"><i data-lucide="file-json" class="w-4 h-4"></i>Desde archivo<input type="file" accept=".json,application/json" class="hidden" onchange="loadCasesFromFile(this)"></label>
+            ${customCases.length ? `<button onclick="clearCustom()" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm">Quitar ${customCases.length} casos agregados</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>`;
+}
+
+// ---------- Estación ----------
+function renderStation() {
+  const c = getCase(state.current);
+  const ip = c.instruccionPuerta || {};
+  const sv = ip.signosVitales || {};
+  const svKeys = Object.keys(sv).filter(k => sv[k]);
+  const p = progress[c.id] || {};
+  const missed = (p.missed || []).map(id => c.pautaCotejo.find(i => i.idItem === id)).filter(Boolean);
+  const title = state.blind ? `Estación aleatoria #${state.blindNumber}` : esc(c.titulo);
+  const sub = state.blind ? 'Especialidad oculta' : esc(c.especialidad);
+  const info = c.infoDesbloqueable || {};
+  const acc = (label, icon, text) => text ? `
+    <details class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <summary class="p-4 flex items-center justify-between font-semibold"><span class="flex items-center gap-2"><i data-lucide="${icon}" class="w-4 h-4 text-teal-600"></i>${label}</span><i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+      <div class="px-4 pb-4 text-sm leading-relaxed text-slate-700 dark:text-slate-300">${fmt(text)}</div>
+    </details>` : '';
+  return `
+  <div id="topbar" class="sticky top-0 z-30 text-white shadow-md bg-teal-600 dark:bg-teal-700">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+      <button onclick="if(confirm('¿Salir de la estación sin evaluar?')) backToDashboard()" class="p-2 rounded-lg hover:bg-white/15" title="Salir"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold truncate">${title}</div>
+        <div class="text-xs opacity-90">${sub}</div>
+      </div>
+      <div class="flex items-center gap-2"><i data-lucide="timer" class="w-5 h-5"></i><span id="timer" class="font-mono text-3xl font-extrabold tabular-nums">${mmss(state.remaining)}</span></div>
+      <button onclick="goToPauta()" class="ml-2 px-4 py-2 rounded-lg bg-white text-slate-900 font-bold flex items-center gap-1 hover:bg-slate-100"><span class="hidden sm:inline">Siguiente / Ir a pauta</span><span class="sm:hidden">Pauta</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+    </div>
+    <div class="h-1 bg-white/20"><div id="timebar" class="h-1 bg-white transition-all" style="width:100%"></div></div>
+  </div>
+  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-5 gap-5">
+    <section class="lg:col-span-3 space-y-4">
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+        <div class="flex items-center gap-2 text-sm text-teal-700 dark:text-teal-400 font-semibold mb-3"><i data-lucide="door-open" class="w-4 h-4"></i>Puerta de estación · ${esc(c.escenario || '')}</div>
+        <p class="text-[1.05rem] leading-relaxed">${fmt(ip.vineta)}</p>
+      </div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+        <div class="flex items-center gap-2 font-semibold mb-3"><i data-lucide="activity" class="w-4 h-4 text-rose-500"></i>Signos vitales</div>
+        ${svKeys.length ? `<div class="grid grid-cols-2 sm:grid-cols-5 gap-2">${svKeys.map(k => `<div class="rounded-lg bg-slate-50 dark:bg-slate-800 p-2 text-center"><div class="text-xs text-slate-500">${esc(k)}</div><div class="font-bold">${esc(sv[k])}</div></div>`).join('')}</div>` : '<p class="text-sm text-slate-500">No informados en el caso.</p>'}
+      </div>
+      <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+        <div class="flex items-center gap-2 font-semibold mb-3"><i data-lucide="list-checks" class="w-4 h-4 text-teal-600"></i>Tareas</div>
+        <ol class="list-decimal pl-5 space-y-1.5">${(ip.tareas || []).map(t => `<li>${fmt(t)}</li>`).join('')}</ol>
+      </div>
+    </section>
+    <section class="lg:col-span-2 space-y-3">
+      ${acc('Ver datos de anamnesis', 'message-circle', info.anamnesis)}
+      ${acc('Ver examen físico', 'stethoscope', info.examenFisico)}
+      ${acc('Ver exámenes complementarios', 'flask-conical', info.complementarios)}
+      ${!info.anamnesis && !info.examenFisico && !info.complementarios ? '<p class="text-sm text-slate-500 px-1">Esta estación no tiene información a demanda. Todo está en la puerta.</p>' : ''}
+      ${missed.length ? `
+      <details class="rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40">
+        <summary class="p-4 flex items-center justify-between font-semibold text-amber-800 dark:text-amber-300"><span class="flex items-center gap-2"><i data-lucide="history" class="w-4 h-4"></i>Recordatorio: omitidos en tu intento anterior</span><i data-lucide="chevron-down" class="w-4 h-4 chev"></i></summary>
+        <ul class="px-6 pb-4 list-disc text-sm space-y-1">${missed.map(i => `<li>${esc(i.descripcion)}</li>`).join('')}</ul>
+      </details>` : ''}
+      <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+        <label class="text-sm font-semibold flex items-center gap-2 mb-2"><i data-lucide="pencil" class="w-4 h-4"></i>Borrador rápido (opcional)</label>
+        <textarea id="notes" rows="5" class="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 text-sm" placeholder="Apuntes, no se evalúan">${esc(state.notes)}</textarea>
+      </div>
+    </section>
+  </main>`;
+}
+
+// ---------- Pauta ----------
+function scoreNow(c) {
+  let got = 0;
+  c.pautaCotejo.forEach(i => { if (state.checks[i.idItem]) got += Number(i.peso || 0); });
+  const tot = totalPts(c);
+  return { got: round1(got), tot: round1(tot), pct: tot ? Math.round(100 * got / tot) : 0 };
+}
+function renderPauta() {
+  const c = getCase(state.current);
+  const groups = {};
+  c.pautaCotejo.forEach(i => { (groups[i.categoria] = groups[i.categoria] || []).push(i); });
+  const s = scoreNow(c);
+  const groupHtml = Object.entries(groups).map(([cat, items]) => `
+    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 font-semibold text-sm flex justify-between"><span>${esc(cat)}</span><span class="text-slate-500">${round1(items.reduce((a, i) => a + Number(i.peso || 0), 0))} pts</span></div>
+      <div class="divide-y divide-slate-100 dark:divide-slate-800">
+        ${items.map(i => `
+        <label class="flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50">
+          <input type="checkbox" class="chk mt-0.5" ${state.checks[i.idItem] ? 'checked' : ''} onchange="toggleCheck('${i.idItem}', this.checked)">
+          <span class="flex-1 text-[0.95rem] leading-snug">${fmt(i.descripcion)} ${i.critico ? '<span class="ml-1 text-xs font-bold text-rose-600 dark:text-rose-400 align-middle">CRÍTICO</span>' : ''}</span>
+          <span class="text-sm font-semibold text-slate-500 tabular-nums">${i.peso}</span>
+        </label>`).join('')}
+      </div>
+    </div>`).join('');
+  return `
+  ${renderHeader(`<button onclick="backToDashboard()" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1"><i data-lucide="home" class="w-4 h-4"></i>Inicio</button>`)}
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-5">
+    <section class="rounded-2xl p-5 bg-gradient-to-br from-teal-600 to-teal-800 text-white shadow">
+      <div class="flex flex-wrap items-center gap-2 text-sm opacity-90 mb-1"><i data-lucide="eye" class="w-4 h-4"></i>${state.blind ? `Estación aleatoria #${state.blindNumber} revelada` : 'Pauta de cotejo'}</div>
+      <h2 class="text-2xl font-extrabold">${esc(c.titulo)}</h2>
+      <div class="flex flex-wrap gap-2 mt-2 text-sm">
+        <span class="px-2 py-0.5 rounded-full bg-white/20">${esc(c.especialidad)}</span>
+        <span class="px-2 py-0.5 rounded-full bg-white/20 flex items-center gap-1"><i data-lucide="clock" class="w-3.5 h-3.5"></i>Tiempo empleado ${mmss(state.elapsed)} min</span>
+        <span class="px-2 py-0.5 rounded-full bg-white/20">${c.tipoPauta === 'oficial' ? 'Pauta oficial del documento' : 'Checklist construido desde el apunte (no oficial)'}</span>
+      </div>
+    </section>
+
+    <section class="sticky top-[65px] z-10 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div><span id="scoreTxt" class="text-2xl font-extrabold tabular-nums">${s.got} / ${s.tot}</span> <span class="text-slate-500">pts</span> <span id="pctTxt" class="ml-2 text-2xl font-extrabold ${s.pct < 70 ? 'text-rose-600' : s.pct > 85 ? 'text-emerald-600' : 'text-amber-600'}">${s.pct}%</span></div>
+        <div class="flex gap-2">
+          <button onclick="markAll(true)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1"><i data-lucide="check-check" class="w-4 h-4"></i>Marcar todo</button>
+          <button onclick="markAll(false)" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-sm flex items-center gap-1"><i data-lucide="square" class="w-4 h-4"></i>Desmarcar todo</button>
+        </div>
+      </div>
+      <div class="h-2.5 rounded-full bg-slate-200 dark:bg-slate-800 mt-3 overflow-hidden"><div id="pctBar" class="h-full rounded-full transition-all ${s.pct < 70 ? 'bg-rose-500' : s.pct > 85 ? 'bg-emerald-500' : 'bg-amber-500'}" style="width:${s.pct}%"></div></div>
+    </section>
+
+    <section class="space-y-4">${groupHtml}</section>
+
+    <section id="missedBox">${renderMissedBox(c)}</section>
+
+    <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
+      <h3 class="font-bold flex items-center gap-2 mb-2"><i data-lucide="gem" class="w-4 h-4 text-teal-600"></i>Perlas clínicas</h3>
+      <div class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">${fmt(c.perlasClinicas)}</div>
+    </section>
+
+    ${c.notasActualizacion ? `
+    <section class="rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900 p-5">
+      <h3 class="font-bold flex items-center gap-2 mb-2 text-sky-800 dark:text-sky-300"><i data-lucide="refresh-cw" class="w-4 h-4"></i>Correcciones y actualizaciones respecto al documento</h3>
+      <div class="text-sm leading-relaxed text-sky-900 dark:text-sky-200">${fmt(c.notasActualizacion)}</div>
+    </section>` : ''}
+
+    ${state.notes.trim() ? `<section class="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 text-sm"><b>Tu borrador:</b><br>${fmt(state.notes)}</section>` : ''}
+
+    <section class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 space-y-3">
+      <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" class="chk" ${state.forceWeak ? 'checked' : ''} onchange="state.forceWeak=this.checked"><span>Marcar como débil para repasar (bajo 70% se marca solo)</span></label>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button onclick="saveAttempt(true)" class="flex-1 px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold flex items-center justify-center gap-2"><i data-lucide="save" class="w-5 h-5"></i>Guardar intento y finalizar</button>
+        <button onclick="saveAttempt(false); randomStation()" class="flex-1 px-5 py-3 rounded-xl border-2 border-teal-600 text-teal-700 dark:text-teal-400 font-bold flex items-center justify-center gap-2"><i data-lucide="shuffle" class="w-5 h-5"></i>Guardar y pasar a otra al azar</button>
+      </div>
+      <button onclick="if(confirm('¿Salir sin guardar este intento?')) backToDashboard()" class="text-sm text-slate-500 underline">Salir sin guardar</button>
+    </section>
+  </main>`;
+}
+function renderMissedBox(c) {
+  const missed = c.pautaCotejo.filter(i => !state.checks[i.idItem]);
+  if (!missed.length) return `<div class="rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 p-5 text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-2"><i data-lucide="party-popper" class="w-5 h-5"></i>Sin omisiones en esta sesión</div>`;
+  return `
+  <div class="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-900 p-5">
+    <h3 class="font-bold text-rose-800 dark:text-rose-300 flex items-center gap-2 mb-2"><i data-lucide="alert-triangle" class="w-5 h-5"></i>Puntos omitidos en esta sesión (${missed.length})</h3>
+    <ul class="list-disc pl-6 space-y-1 text-sm text-rose-900 dark:text-rose-200">${missed.map(i => `<li>${esc(i.descripcion)} <span class="opacity-70">(${i.peso} pts${i.critico ? ', crítico' : ''})</span></li>`).join('')}</ul>
+  </div>`;
+}
+function toggleCheck(id, v) { state.checks[id] = v; updateScoreUI(); }
+function markAll(v) { const c = getCase(state.current); c.pautaCotejo.forEach(i => state.checks[i.idItem] = v); render(); }
+function updateScoreUI() {
+  const c = getCase(state.current), s = scoreNow(c);
+  const color = s.pct < 70 ? 'rose' : s.pct > 85 ? 'emerald' : 'amber';
+  document.getElementById('scoreTxt').textContent = `${s.got} / ${s.tot}`;
+  const pt = document.getElementById('pctTxt'); pt.textContent = s.pct + '%'; pt.className = `ml-2 text-2xl font-extrabold text-${color}-600`;
+  const pb = document.getElementById('pctBar'); pb.style.width = s.pct + '%'; pb.className = `h-full rounded-full transition-all bg-${color}-500`;
+  document.getElementById('missedBox').innerHTML = renderMissedBox(c);
+  icons();
+}
+function saveAttempt(finish) {
+  const c = getCase(state.current);
+  if (!state.saved) {
+    const s = scoreNow(c);
+    const p = progress[c.id] || { attempts: [], flag: false };
+    p.attempts = p.attempts || [];
+    p.attempts.push({ date: new Date().toISOString(), pct: s.pct, time: Math.round(state.elapsed) });
+    p.last = s.pct;
+    p.best = Math.max(p.best || 0, s.pct);
+    p.lastTime = Math.round(state.elapsed);
+    p.missed = c.pautaCotejo.filter(i => !state.checks[i.idItem]).map(i => i.idItem);
+    if (state.forceWeak) p.flag = true;
+    else if (s.pct >= 70 && p.flag && p.autoFlag) { p.flag = false; }
+    p.autoFlag = false;
+    progress[c.id] = p;
+    safeSet(STORE_KEY, progress);
+    state.saved = true;
+  }
+  if (finish) { toast('Intento guardado'); backToDashboard(); }
+}
+
+// ---------- Acciones varias ----------
+function toggleFlag(id) {
+  const p = progress[id] || { attempts: [] };
+  p.flag = !p.flag; p.autoFlag = false;
+  progress[id] = p; safeSet(STORE_KEY, progress); render();
+}
+function showMissed(id) {
+  const c = getCase(id), p = progress[id] || {};
+  const items = (p.missed || []).map(mid => c.pautaCotejo.find(i => i.idItem === mid)).filter(Boolean);
+  openModal(`Lo que te faltó la última vez`, `<p class="text-sm text-slate-500 mb-3">${esc(c.titulo)} · último ${p.last}%</p><ul class="list-disc pl-5 space-y-1.5">${items.map(i => `<li>${esc(i.descripcion)}</li>`).join('')}</ul>`);
+}
+function openModal(title, body) {
+  document.getElementById('modal-root').innerHTML = `
+  <div class="fixed inset-0 z-50 bg-black/50 grid place-items-center p-4" onclick="if(event.target===this) closeModal()">
+    <div class="w-full max-w-lg max-h-[85vh] overflow-auto scroll-thin rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-xl">
+      <div class="flex items-center justify-between mb-3"><h3 class="font-bold text-lg">${esc(title)}</h3><button onclick="closeModal()" class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+      ${body}
+    </div>
+  </div>`;
+  icons();
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+function toast(msg) {
+  const d = document.createElement('div');
+  d.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg text-sm font-medium';
+  d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2200);
+}
+function download(name, obj) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function exportProgress() { download(`progreso_ecoe_ped_${new Date().toISOString().slice(0, 10)}.json`, { version: 1, progress, customCases }); }
+function readFile(input, cb) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { cb(JSON.parse(r.result)); } catch (e) { toast('JSON inválido'); } input.value = ''; }; r.readAsText(f); }
+function importProgress(input) {
+  readFile(input, data => {
+    if (!data || typeof data !== 'object') return toast('Archivo no reconocido');
+    progress = data.progress || data;
+    if (Array.isArray(data.customCases)) { customCases = data.customCases; safeSet(CUSTOM_KEY, customCases); }
+    safeSet(STORE_KEY, progress); toast('Progreso importado'); render();
+  });
+}
+function resetProgress() { if (confirm('¿Borrar todo el progreso guardado? No se puede deshacer.')) { progress = {}; safeSet(STORE_KEY, progress); render(); } }
+function validCase(c) { return c && c.id && c.titulo && c.instruccionPuerta && Array.isArray(c.pautaCotejo) && c.pautaCotejo.length; }
+function addCases(data) {
+  const arr = Array.isArray(data) ? data : [data];
+  const ok = arr.filter(validCase);
+  if (!ok.length) return toast('No encontré casos válidos (requieren id, titulo, instruccionPuerta y pautaCotejo)');
+  ok.forEach(c => { const i = customCases.findIndex(x => x.id === c.id); if (i >= 0) customCases[i] = c; else customCases.push(c); });
+  safeSet(CUSTOM_KEY, customCases); toast(`${ok.length} casos cargados`); render();
+}
+function loadCasesFromText() { const t = document.getElementById('caseInput').value.trim(); if (!t) return; try { addCases(JSON.parse(t)); } catch (e) { toast('JSON inválido'); } }
+function loadCasesFromFile(input) { readFile(input, addCases); }
+function clearCustom() { if (confirm('¿Quitar los casos agregados manualmente?')) { customCases = []; safeSet(CUSTOM_KEY, customCases); render(); } }
+
+// ---------- Teclado ----------
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  const typing = tag === 'textarea' || tag === 'input' || tag === 'select';
+  if (state.view === 'station' && !typing && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); goToPauta(); }
+  else if (state.view === 'dashboard' && !typing && (e.key === 'r' || e.key === 'R')) { e.preventDefault(); randomStation(); }
+  else if (e.key === 'Escape') closeModal();
+});
+
+applyTheme();
+render();
+</script>
+</body>
+</html>
